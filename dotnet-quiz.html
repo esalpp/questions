@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>.NET Knowledge Quiz</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --text: #1b1f2a;
+    --muted: #5b6475;
+    --border: #e3e6ee;
+    --accent: #512bd4;
+    --accent-text: #ffffff;
+    --accent-soft: #ece8fc;
+    --code-bg: #f2f3f7;
+    --ok: #17784a;
+    --ok-soft: #e4f4eb;
+    --bad: #bf3329;
+    --bad-soft: #fbe8e6;
+    --shadow: 0 1px 2px rgba(20, 24, 40, .06), 0 2px 8px rgba(20, 24, 40, .04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1117;
+      --surface: #171a22;
+      --text: #e7e9ee;
+      --muted: #9aa3b2;
+      --border: #2a2f3b;
+      --accent: #9b87f5;
+      --accent-text: #120d26;
+      --accent-soft: #261f47;
+      --code-bg: #11141b;
+      --ok: #4cc38a;
+      --ok-soft: #12271d;
+      --bad: #f0776c;
+      --bad-soft: #321917;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1117;
+    --surface: #171a22;
+    --text: #e7e9ee;
+    --muted: #9aa3b2;
+    --border: #2a2f3b;
+    --accent: #9b87f5;
+    --accent-text: #120d26;
+    --accent-soft: #261f47;
+    --code-bg: #11141b;
+    --ok: #4cc38a;
+    --ok-soft: #12271d;
+    --bad: #f0776c;
+    --bad-soft: #321917;
+    --shadow: none;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  code, pre { font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+
+  header.intro { padding: 40px 0 20px; }
+  header.intro h1 { margin: 0 0 6px; font-size: 1.9rem; letter-spacing: -.01em; }
+  header.intro p { margin: 0; color: var(--muted); }
+
+  /* Sticky progress bar */
+  .bar {
+    position: sticky; top: 0; z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar .wrap { display: flex; align-items: center; gap: 12px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .progress-text { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 0; }
+  .progress-text small { font-weight: 400; color: var(--muted); }
+  .track { flex: 1 1 120px; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+
+  button {
+    font: inherit; cursor: pointer; border-radius: 8px; padding: 8px 14px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+  button.primary:disabled { opacity: .45; cursor: not-allowed; }
+  button.link { border: none; background: none; padding: 4px 2px; color: var(--accent); text-decoration: underline; }
+  button:focus-visible, input:focus-visible + .opt-text { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  [hidden] { display: none !important; }
+  .hint { color: var(--muted); font-size: .9rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+  /* Question cards */
+  main { padding: 20px 0 60px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 18px 16px; margin: 0 0 16px; box-shadow: var(--shadow);
+    scroll-margin-top: 80px;
+  }
+  .card.flash { animation: flash 1.2s ease; }
+  @keyframes flash { 0%, 40% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); } }
+  .meta { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-size: .8rem; flex-wrap: wrap; }
+  .num { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chip { background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+  .verdict { margin-left: auto; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+  .verdict.ok { background: var(--ok-soft); color: var(--ok); }
+  .verdict.bad { background: var(--bad-soft); color: var(--bad); }
+  .qtext { margin: 0 0 12px; font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; }
+  :not(pre) > code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; font-size: .88em; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; margin: 0 0 14px; overflow-x: auto; font-size: .88rem; line-height: 1.5;
+  }
+
+  .options { display: grid; gap: 8px; }
+  .opt { display: block; position: relative; cursor: pointer; }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt-text {
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    transition: border-color .15s, background .15s;
+  }
+  .opt-text::before {
+    content: ""; flex: none; width: 16px; height: 16px; margin-top: 3px; border-radius: 50%;
+    border: 2px solid var(--muted); box-sizing: border-box;
+  }
+  .opt-label { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
+  .opt:hover .opt-text { border-color: var(--accent); }
+  .opt input:checked + .opt-text { border-color: var(--accent); background: var(--accent-soft); }
+  .opt input:checked + .opt-text::before { border: 5px solid var(--accent); }
+
+  .revealed .opt { cursor: default; }
+  .revealed .opt:hover .opt-text { border-color: var(--border); }
+  .revealed .opt.correct .opt-text { border-color: var(--ok); background: var(--ok-soft); }
+  .revealed .opt.correct .opt-text::before { border-color: var(--ok); }
+  .revealed .opt.wrong .opt-text { border-color: var(--bad); background: var(--bad-soft); }
+  .revealed .opt.wrong .opt-text::before { border-color: var(--bad); }
+  .tag { margin-left: auto; padding-left: 8px; font-size: .78rem; font-weight: 700; white-space: nowrap; align-self: center; }
+  .correct .tag { color: var(--ok); }
+  .wrong .tag { color: var(--bad); }
+
+  .explain { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--code-bg); border-radius: 0 8px 8px 0; font-size: .94rem; }
+  .explain strong { display: block; margin-bottom: 2px; }
+
+  /* Results */
+  .results { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: var(--shadow); scroll-margin-top: 80px; }
+  .score { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .score .big { font-size: 2.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .score .pct { font-size: 1.2rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .score .msg { margin: 6px 0 0; color: var(--muted); width: 100%; }
+  .topics { display: grid; gap: 8px; margin: 18px 0; }
+  .topic { display: grid; grid-template-columns: minmax(0, 150px) 1fr auto; gap: 10px; align-items: center; font-size: .9rem; }
+  .topic .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topic .t { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .topic .f { height: 100%; background: var(--ok); }
+  .topic .n { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .toggle { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-size: .95rem; }
+
+  .only-wrong .card.is-correct { display: none; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 0 0 40px; }
+
+  @media (max-width: 520px) {
+    header.intro { padding-top: 28px; }
+    header.intro h1 { font-size: 1.5rem; }
+    .card { padding: 14px; }
+    .topic { grid-template-columns: minmax(0, 110px) 1fr auto; }
+    .opt-text { flex-wrap: wrap; }
+    .tag { flex-basis: 100%; margin-left: 26px; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <div class="wrap">
+    <h1>.NET Knowledge Quiz</h1>
+    <p id="subtitle">Answer every question, then reveal the answers to see your score and an explanation for each one. Your answers are saved in this browser.</p>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="progress-text" id="progressText">0 / 0 <small>answered</small></span>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    <button class="primary" id="revealBtn" disabled>Reveal answers</button>
+  </div>
+  <div class="wrap hint" id="hint" style="padding-bottom:10px">
+    <span id="hintText"></span>
+    <button class="link" id="jumpBtn">Next unanswered</button>
+    <button class="link" id="forceBtn">Reveal anyway</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="results" id="results" hidden></section>
+  <main id="quiz"></main>
+</div>
+
+<footer>Covers C#, LINQ, async/await, the runtime, ASP.NET Core and EF Core.</footer>
+
+<script>
+/* Each question: options are written in their "natural" order; `answer` is the
+   index of the correct option. Options are shuffled per attempt. Text wrapped
+   in `backticks` is rendered as inline code. */
+const QUESTIONS = [
+  // ---------- C# fundamentals ----------
+  {
+    id: "value-type", topic: "C# Fundamentals",
+    q: "Which of these is a value type?",
+    options: ["`string`", "`int[]`", "`DateTime`", "`object`"],
+    answer: 2,
+    explain: "`DateTime` is a `struct`, so it's a value type. `string`, arrays (even arrays of value types like `int[]`) and `object` are all reference types."
+  },
+  {
+    id: "string-immutable", topic: "C# Fundamentals",
+    q: "What does this print?",
+    code: [
+      'string a = "hello";',
+      'string b = a;',
+      'b += " world";',
+      'Console.WriteLine(a);'
+    ],
+    options: ["`hello`", "`hello world`", "` world`", "It doesn't compile"],
+    answer: 0,
+    explain: "Strings are immutable. `b += \" world\"` creates a brand-new string and points `b` at it; `a` still refers to the original `\"hello\"`."
+  },
+  {
+    id: "boxing", topic: "C# Fundamentals",
+    q: "What does this print?",
+    code: [
+      'int x = 5;',
+      'object o = x;',
+      'x = 10;',
+      'Console.WriteLine(o);'
+    ],
+    options: ["`5`", "`10`", "`null`", "It throws `InvalidCastException`"],
+    answer: 0,
+    explain: "Assigning an `int` to `object` boxes it: a copy of the value is placed on the heap. Changing `x` afterwards doesn't affect the boxed copy."
+  },
+  {
+    id: "ref-equality", topic: "C# Fundamentals",
+    q: "What does this print?",
+    code: [
+      'object a = "abc";',
+      'object b = new string("abc".ToCharArray());',
+      'Console.WriteLine(a == b);',
+      'Console.WriteLine(a.Equals(b));'
+    ],
+    options: ["`True` then `True`", "`False` then `True`", "`True` then `False`", "`False` then `False`"],
+    answer: 1,
+    explain: "Both variables are typed as `object`, so `==` is chosen at compile time as reference equality, and `new string(...)` creates a separate instance → `False`. `Equals` is virtual, so `string.Equals` runs and compares the characters → `True`."
+  },
+  {
+    id: "const-vs-readonly", topic: "C# Fundamentals",
+    q: "A library exposes `public const int MaxItems = 10;`. You change it to `20` and ship only the new library DLL. What happens in an app that uses `MaxItems` and was NOT recompiled?",
+    options: [
+      "It sees `20` immediately",
+      "It still uses `10`, because `const` values are copied into the caller at compile time",
+      "It fails to load with a `MissingFieldException`",
+      "It sees `20` only after a restart"
+    ],
+    answer: 1,
+    explain: "A `const` is a compile-time literal baked into every call site. Use `static readonly` for values that may change between versions; those are read at run time."
+  },
+  {
+    id: "closure-loop", topic: "C# Fundamentals",
+    q: "What does this print?",
+    code: [
+      'var actions = new List<Action>();',
+      'for (int i = 0; i < 3; i++)',
+      '    actions.Add(() => Console.Write(i));',
+      'foreach (var a in actions) a();'
+    ],
+    options: ["`012`", "`333`", "`222`", "`000`"],
+    answer: 1,
+    explain: "A `for` loop has a single `i` variable shared by every lambda. By the time the lambdas run, `i` is `3`. (A `foreach` loop variable is fresh per iteration since C# 5, so it would print `012`.)"
+  },
+  {
+    id: "overflow", topic: "C# Fundamentals",
+    q: "In a default project (no `checked` settings), what does this print?",
+    code: [
+      'int max = int.MaxValue;',
+      'int y = max + 1;',
+      'Console.WriteLine(y);'
+    ],
+    options: ["`2147483648`", "It throws `OverflowException`", "`-2147483648`", "`0`"],
+    answer: 2,
+    explain: "Integer arithmetic is `unchecked` by default, so it silently wraps around to `int.MinValue`. Wrap it in `checked(...)` or enable `<CheckForOverflowUnderflow>` to get an `OverflowException` instead."
+  },
+  {
+    id: "switch-pattern", topic: "C# Fundamentals",
+    q: "What is the value of `r`?",
+    code: [
+      'object v = 42;',
+      'string r = v switch',
+      '{',
+      '    string s           => "string",',
+      '    int n when n > 40  => "big int",',
+      '    int                => "int",',
+      '    _                  => "other"',
+      '};'
+    ],
+    options: ['`"string"`', '`"big int"`', '`"int"`', '`"other"`'],
+    answer: 1,
+    explain: "Switch-expression arms are tested top to bottom. `42` is an `int` and satisfies the `when n > 40` guard, so the second arm wins."
+  },
+  {
+    id: "record-equality", topic: "C# Fundamentals",
+    q: "What does this print?",
+    code: [
+      'public record Person(string Name);',
+      '',
+      'var a = new Person("Ann");',
+      'var b = new Person("Ann");',
+      'Console.WriteLine(a == b);'
+    ],
+    options: ["`True`", "`False`", "It doesn't compile: records can't use `==`", "It depends on `GetHashCode`"],
+    answer: 0,
+    explain: "Records get compiler-generated value equality: `Equals`, `==`, `!=` and `GetHashCode` compare the properties, not the references."
+  },
+  {
+    id: "nrt", topic: "C# Fundamentals",
+    q: "With nullable reference types enabled, what does the `?` in `string? name` do?",
+    options: [
+      "It wraps the string in `Nullable<string>` at run time",
+      "It's a compile-time annotation: the compiler warns if you dereference `name` without a null check",
+      "It makes the string default to `\"\"` instead of `null`",
+      "It throws at run time if `null` is assigned to a `string` without `?`"
+    ],
+    answer: 1,
+    explain: "Nullable reference types are purely a static-analysis feature. Nothing changes at run time; the compiler just tracks null-state and emits warnings."
+  },
+
+  // ---------- LINQ & collections ----------
+  {
+    id: "deferred", topic: "LINQ & Collections",
+    q: "What does this print?",
+    code: [
+      'var list = new List<int> { 1, 2, 3 };',
+      'var query = list.Where(x => x > 1);',
+      'list.Add(4);',
+      'Console.WriteLine(query.Count());'
+    ],
+    options: ["`2`", "`3`", "`4`", "It throws `InvalidOperationException`"],
+    answer: 1,
+    explain: "`Where` uses deferred execution: nothing is filtered until the query is enumerated. By the time `Count()` runs, the list is `1,2,3,4`, so 2, 3 and 4 match."
+  },
+  {
+    id: "iqueryable", topic: "LINQ & Collections",
+    q: "What is the key difference between `IQueryable<T>` and `IEnumerable<T>`?",
+    options: [
+      "`IQueryable<T>` is always executed in parallel",
+      "`IEnumerable<T>` can't be used with LINQ",
+      "`IQueryable<T>` builds an expression tree that a provider (e.g. EF Core) can translate into something else, such as SQL",
+      "`IQueryable<T>` caches its results after the first enumeration"
+    ],
+    answer: 2,
+    explain: "LINQ on `IEnumerable<T>` runs compiled delegates in memory. LINQ on `IQueryable<T>` captures `Expression<Func<...>>` trees that the provider inspects and translates, e.g. into a SQL `WHERE` clause."
+  },
+  {
+    id: "yield", topic: "LINQ & Collections",
+    q: "What does this print?",
+    code: [
+      'IEnumerable<int> Numbers()',
+      '{',
+      '    Console.Write("A");',
+      '    yield return 1;',
+      '    Console.Write("B");',
+      '    yield return 2;',
+      '}',
+      '',
+      'var n = Numbers();',
+      'Console.Write("C");',
+      'foreach (var i in n) Console.Write(i);'
+    ],
+    options: ["`AB12C`", "`CA1B2`", "`A1B2C`", "`CAB12`"],
+    answer: 1,
+    explain: "Calling an iterator method just creates the state machine; none of its body runs until `MoveNext()` is called. So `C` prints first, then the body runs lazily one `yield` at a time."
+  },
+  {
+    id: "immediate", topic: "LINQ & Collections",
+    q: "Which LINQ method forces the query to execute immediately?",
+    options: ["`Where`", "`Select`", "`OrderBy`", "`ToList`"],
+    answer: 3,
+    explain: "`ToList`, `ToArray`, `ToDictionary`, `Count`, `First`, `Sum` and similar methods enumerate the source right away. `Where`, `Select` and `OrderBy` are deferred."
+  },
+  {
+    id: "dict-complexity", topic: "LINQ & Collections",
+    q: "What is the average time complexity of looking up a key in `Dictionary<TKey, TValue>`?",
+    options: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
+    answer: 0,
+    explain: "`Dictionary` is a hash table: lookups are O(1) on average (O(n) only in pathological hash-collision cases). `SortedDictionary` is the O(log n) one."
+  },
+
+  // ---------- Async ----------
+  {
+    id: "async-void", topic: "Async & Threading",
+    q: "Why should you avoid `async void` methods (outside of event handlers)?",
+    options: [
+      "They always run synchronously",
+      "Callers can't await them, and an exception thrown inside can't be caught by the caller and typically crashes the process",
+      "They can't contain `await` expressions",
+      "They are slower than `async Task` because they allocate more"
+    ],
+    answer: 1,
+    explain: "An `async void` method has no `Task` to observe. Exceptions are re-raised on the `SynchronizationContext` (or thread pool), where they usually terminate the app. Return `Task` instead."
+  },
+  {
+    id: "whenall", topic: "Async & Threading",
+    q: "Roughly how long does this take?",
+    code: [
+      'var t1 = Task.Delay(1000);',
+      'var t2 = Task.Delay(1000);',
+      'await Task.WhenAll(t1, t2);'
+    ],
+    options: ["~0 seconds", "~1 second", "~2 seconds", "It never completes"],
+    answer: 1,
+    explain: "Both delays start as soon as `Task.Delay` is called, so they run concurrently. `WhenAll` completes when the slower one does, about 1 second."
+  },
+  {
+    id: "configureawait", topic: "Async & Threading",
+    q: "What does `await SomethingAsync().ConfigureAwait(false)` do?",
+    options: [
+      "Runs `SomethingAsync` on a new thread",
+      "Disables exceptions from `SomethingAsync`",
+      "Tells the awaiter not to resume the continuation on the captured `SynchronizationContext`/`TaskScheduler`",
+      "Makes the call synchronous"
+    ],
+    answer: 2,
+    explain: "By default `await` captures the current context (e.g. a UI thread) and posts the continuation back to it. `ConfigureAwait(false)` lets the rest of the method run on whatever thread completes the task, which is common in library code."
+  },
+  {
+    id: "await-lock", topic: "Async & Threading",
+    q: "What happens if you write `await` inside a `lock (obj) { ... }` block?",
+    options: [
+      "It works, and the lock is held across the await",
+      "It works, but the lock is released during the await",
+      "It's a compile-time error; use something like `SemaphoreSlim.WaitAsync()` instead",
+      "It deadlocks at run time"
+    ],
+    answer: 2,
+    explain: "The compiler forbids it (CS1996): `Monitor` locks are thread-affine, but code after an `await` may resume on another thread. `SemaphoreSlim` with `WaitAsync()`/`Release()` is the usual async-friendly alternative."
+  },
+  {
+    id: "valuetask", topic: "Async & Threading",
+    q: "Which statement about `ValueTask<T>` is TRUE?",
+    options: [
+      "It's always faster than `Task<T>` and should be your default return type",
+      "A given `ValueTask<T>` instance should be awaited only once; awaiting it twice or concurrently is unsupported",
+      "It's a class that the runtime caches automatically",
+      "It can only represent results that are already available synchronously"
+    ],
+    answer: 1,
+    explain: "`ValueTask<T>` is a struct that avoids allocating when the result is often available synchronously, but its backing source may be reused. Await it once, or call `.AsTask()` if you need to await it more than once."
+  },
+  {
+    id: "cancellation", topic: "Async & Threading",
+    q: "What happens when you call `cts.Cancel()` on a `CancellationTokenSource`?",
+    options: [
+      "Any thread using the token is aborted immediately",
+      "The token is marked as cancelled and registered callbacks run, but running code stops only if it checks the token",
+      "All tasks using the token are deleted",
+      "Nothing, unless `cts.Dispose()` is also called"
+    ],
+    answer: 1,
+    explain: "Cancellation in .NET is cooperative. Your code (or the APIs you pass the token to) must observe it, e.g. by calling `token.ThrowIfCancellationRequested()`."
+  },
+
+  // ---------- Runtime & memory ----------
+  {
+    id: "loh", topic: "Runtime & Memory",
+    q: "By default, objects of at least what size are allocated on the Large Object Heap (LOH)?",
+    options: ["1 KB", "8,192 bytes", "85,000 bytes", "1 MB"],
+    answer: 2,
+    explain: "Objects of 85,000 bytes or more (typically big arrays) go to the LOH, which is collected with Gen 2 and isn't compacted by default. The threshold can be changed with `GCLOHThreshold`."
+  },
+  {
+    id: "span", topic: "Runtime & Memory",
+    q: "Which statement about `Span<T>` is TRUE?",
+    options: [
+      "It always copies the data it points to",
+      "It's a `ref struct`, so it can't be stored as a field of a class or boxed",
+      "It can only point to arrays",
+      "It's thread-safe by design"
+    ],
+    answer: 1,
+    explain: "`Span<T>` is a `ref struct` that must stay on the stack. It can view arrays, stack memory (`stackalloc`) or native memory without copying. Use `Memory<T>` when you need to store it on the heap."
+  },
+  {
+    id: "suppressfinalize", topic: "Runtime & Memory",
+    q: "In the standard Dispose pattern, why does `Dispose()` call `GC.SuppressFinalize(this)`?",
+    options: [
+      "To force an immediate garbage collection",
+      "To prevent the object from ever being collected",
+      "Because cleanup has already happened, so the finalizer doesn't need to run (saving an extra GC cycle)",
+      "To free the object's managed memory immediately"
+    ],
+    answer: 2,
+    explain: "Objects with finalizers survive an extra GC and sit in the finalization queue. Once `Dispose` has cleaned up, suppressing finalization skips that cost."
+  },
+  {
+    id: "il", topic: "Runtime & Memory",
+    q: "In a normal (non-Native-AOT) build, what does the C# compiler put into the output `.dll`?",
+    options: [
+      "x64 machine code",
+      "Intermediate Language (IL) plus metadata, which the JIT compiles to native code at run time",
+      "C# source code that is interpreted at run time",
+      "JavaScript"
+    ],
+    answer: 1,
+    explain: "Roslyn emits IL and metadata. The CLR's JIT (RyuJIT) compiles methods to native code when they're first called. Native AOT instead compiles everything to native code ahead of time."
+  },
+
+  // ---------- ASP.NET Core ----------
+  {
+    id: "di-scoped", topic: "ASP.NET Core",
+    q: "Which DI lifetime gives you one instance per HTTP request in ASP.NET Core?",
+    options: ["Transient", "Scoped", "Singleton", "PerThread"],
+    answer: 1,
+    explain: "ASP.NET Core creates a DI scope for each request. Scoped services are shared within that request. Transient services are new on every resolve; singletons live for the whole app."
+  },
+  {
+    id: "captive", topic: "ASP.NET Core",
+    q: "A Singleton service takes a Scoped service (e.g. a `DbContext`) in its constructor. What's the problem?",
+    options: [
+      "None, this is the recommended pattern",
+      "The scoped instance becomes a \"captive dependency\" that lives as long as the singleton; in Development, ASP.NET Core's scope validation throws an `InvalidOperationException`",
+      "The singleton becomes scoped automatically",
+      "A new scoped instance is created on every method call"
+    ],
+    answer: 1,
+    explain: "A longer-lived service must not hold shorter-lived ones. To use scoped services from a singleton, inject `IServiceScopeFactory` and create a scope when needed."
+  },
+  {
+    id: "middleware-order", topic: "ASP.NET Core",
+    q: "Which middleware must come BEFORE `app.UseAuthorization()` so the user's identity is known when authorization runs?",
+    options: ["`app.UseResponseCompression()`", "`app.UseAuthentication()`", "`app.UseHsts()`", "`app.UseOutputCache()`"],
+    answer: 1,
+    explain: "Middleware runs in registration order. Authentication populates `HttpContext.User`, and authorization then decides whether that user may proceed. Reversing them means every request looks anonymous."
+  },
+  {
+    id: "httpclientfactory", topic: "ASP.NET Core",
+    q: "What is the main reason to use `IHttpClientFactory` instead of `new HttpClient()` per request?",
+    options: [
+      "`HttpClient` can't make HTTPS calls on its own",
+      "It pools and recycles `HttpMessageHandler`s, avoiding socket exhaustion from many clients and stale DNS from a single long-lived one",
+      "It automatically caches every HTTP response",
+      "It makes requests synchronous and simpler"
+    ],
+    answer: 1,
+    explain: "Creating and disposing `HttpClient`s rapidly leaves sockets in TIME_WAIT. Keeping one forever never picks up DNS changes. The factory manages handler lifetimes for you (as does a singleton client with `PooledConnectionLifetime`)."
+  },
+  {
+    id: "options-snapshot", topic: "ASP.NET Core",
+    q: "Which options interface should NOT be injected into a Singleton service?",
+    options: ["`IOptions<T>`", "`IOptionsMonitor<T>`", "`IOptionsSnapshot<T>`", "All of them are fine"],
+    answer: 2,
+    explain: "`IOptionsSnapshot<T>` is registered as Scoped (it's recomputed per request), so it can't go into a singleton. `IOptions<T>` and `IOptionsMonitor<T>` are singletons; use `IOptionsMonitor<T>` for live reloads."
+  },
+  {
+    id: "minimal-binding", topic: "ASP.NET Core",
+    q: "In this Minimal API, where does the `name` parameter come from?",
+    code: [
+      'app.MapGet("/hello/{name}", (string name) => $"Hello {name}");'
+    ],
+    options: ["The query string", "The request body (JSON)", "The route value `{name}`", "A request header"],
+    answer: 2,
+    explain: "Minimal APIs bind a parameter from the route when its name matches a route-template segment. Otherwise simple types fall back to the query string. Use `[FromQuery]`, `[FromHeader]` and so on to be explicit."
+  },
+  {
+    id: "no-synccontext", topic: "ASP.NET Core",
+    q: "Why does blocking on `.Result` NOT cause the classic deadlock in ASP.NET Core that it did in classic ASP.NET?",
+    options: [
+      "ASP.NET Core forbids `.Result` at compile time",
+      "ASP.NET Core has no `SynchronizationContext`, so continuations don't need the blocked request thread",
+      "ASP.NET Core runs all code on a single thread",
+      "`.Result` is automatically converted to `await`"
+    ],
+    answer: 1,
+    explain: "Without a `SynchronizationContext`, continuations run on the thread pool. Blocking is still bad practice, though: it wastes threads and can cause thread-pool starvation under load."
+  },
+
+  // ---------- EF Core ----------
+  {
+    id: "asnotracking", topic: "EF Core",
+    q: "What does `.AsNoTracking()` do on an EF Core query?",
+    options: [
+      "Disables SQL logging for the query",
+      "Returns entities that aren't tracked by the change tracker: faster for read-only data, but edits won't be saved by `SaveChanges()`",
+      "Prevents the query from hitting the database",
+      "Skips lazy loading only"
+    ],
+    answer: 1,
+    explain: "Tracking costs memory and CPU because EF snapshots each entity to detect changes. For read-only scenarios, no-tracking queries are faster and lighter."
+  },
+  {
+    id: "n-plus-one", topic: "EF Core",
+    q: "With lazy loading enabled, you load 100 blogs, then read `blog.Posts` for each one in a loop. What's the problem, and a typical fix?",
+    options: [
+      "Nothing; EF batches it into one query automatically",
+      "N+1 queries (1 for blogs + 100 for posts); fix it with `.Include(b => b.Posts)` or a projection",
+      "A deadlock; fix it with `AsNoTracking()`",
+      "It throws because navigation properties can't be read in a loop"
+    ],
+    answer: 1,
+    explain: "Each lazy-loaded navigation triggers its own round-trip. Eager loading with `Include` (optionally `AsSplitQuery()`) or projecting with `Select` fetches the data in one or a few queries."
+  },
+  {
+    id: "savechanges-tx", topic: "EF Core",
+    q: "On a relational database, how does a single `SaveChanges()` call handle transactions by default?",
+    options: [
+      "It doesn't use a transaction, so each statement commits on its own",
+      "It wraps all pending changes in a single transaction, so either all succeed or none are applied",
+      "It requires you to call `BeginTransaction()` first, or it throws",
+      "It uses one transaction per entity"
+    ],
+    answer: 1,
+    explain: "By default `SaveChanges` is atomic for providers that support transactions. Use `Database.BeginTransaction()` explicitly when you need to span multiple `SaveChanges` calls."
+  }
+];
+
+const STORAGE_KEY = "dotnet-quiz-state-v1";
+const $ = (id) => document.getElementById(id);
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function freshState() {
+  const opt = {};
+  QUESTIONS.forEach(q => { opt[q.id] = shuffle(q.options.map((_, i) => i)); });
+  return { order: QUESTIONS.map(q => q.id), opt, answers: {}, revealed: false, onlyWrong: false };
+}
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!s || !Array.isArray(s.order)) return null;
+    const ids = new Set(QUESTIONS.map(q => q.id));
+    const valid = s.order.length === ids.size && s.order.every(id => ids.has(id)) &&
+      QUESTIONS.every(q => Array.isArray(s.opt?.[q.id]) && s.opt[q.id].length === q.options.length);
+    return valid ? { answers: {}, revealed: false, onlyWrong: false, ...s } : null;
+  } catch { return null; }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* storage unavailable */ }
+}
+
+let state = loadState() || freshState();
+const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+
+/* Render text with `inline code` spans, safely (no innerHTML). */
+function rich(el, text) {
+  text.split("`").forEach((part, i) => {
+    if (!part) return;
+    if (i % 2) { const c = document.createElement("code"); c.textContent = part; el.appendChild(c); }
+    else el.appendChild(document.createTextNode(part));
+  });
+  return el;
+}
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) rich(e, text);
+  return e;
+}
+
+function isCorrect(q) { return state.answers[q.id] === q.answer; }
+
+function renderQuiz() {
+  const root = $("quiz");
+  root.textContent = "";
+  root.classList.toggle("revealed", state.revealed);
+  root.classList.toggle("only-wrong", state.revealed && state.onlyWrong);
+
+  state.order.forEach((id, idx) => {
+    const q = byId[id];
+    const chosen = state.answers[id];
+    const card = el("article", "card");
+    card.id = "card-" + id;
+    if (state.revealed) card.classList.add(isCorrect(q) ? "is-correct" : "is-wrong");
+
+    const meta = el("div", "meta");
+    meta.append(el("span", "num", `Q${idx + 1}`), el("span", "chip", q.topic));
+    if (state.revealed) {
+      const ok = isCorrect(q);
+      meta.append(el("span", "verdict " + (ok ? "ok" : "bad"),
+        ok ? "Correct" : (chosen === undefined ? "Unanswered" : "Incorrect")));
+    }
+    card.append(meta, el("p", "qtext", q.q));
+
+    if (q.code) {
+      const pre = document.createElement("pre");
+      const code = document.createElement("code");
+      code.textContent = q.code.join("\n");
+      pre.appendChild(code);
+      card.appendChild(pre);
+    }
+
+    const opts = el("div", "options");
+    opts.setAttribute("role", "radiogroup");
+    state.opt[id].forEach(oi => {
+      const label = el("label", "opt");
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = id; input.value = oi;
+      input.checked = chosen === oi;
+      input.disabled = state.revealed;
+      input.addEventListener("change", () => {
+        state.answers[id] = oi;
+        saveState();
+        updateProgress();
+      });
+      const text = el("span", "opt-text");
+      text.appendChild(el("span", "opt-label", q.options[oi]));
+      if (state.revealed) {
+        if (oi === q.answer) { label.classList.add("correct"); text.appendChild(el("span", "tag", "✓ Correct answer")); }
+        else if (oi === chosen) { label.classList.add("wrong"); text.appendChild(el("span", "tag", "✗ Your answer")); }
+      }
+      label.append(input, text);
+      opts.appendChild(label);
+    });
+    card.appendChild(opts);
+
+    if (state.revealed) {
+      const ex = el("div", "explain");
+      ex.appendChild(el("strong", null, "Explanation"));
+      ex.appendChild(rich(document.createElement("span"), q.explain));
+      card.appendChild(ex);
+    }
+    root.appendChild(card);
+  });
+}
+
+function unanswered() { return state.order.filter(id => state.answers[id] === undefined); }
+
+function updateProgress() {
+  const total = QUESTIONS.length;
+  const done = total - unanswered().length;
+  $("progressText").innerHTML = "";
+  $("progressText").append(`${done} / ${total} `, el("small", null, "answered"));
+  $("fill").style.width = (done / total * 100) + "%";
+
+  const btn = $("revealBtn");
+  const left = total - done;
+  if (state.revealed) {
+    btn.textContent = "Retake quiz";
+    btn.disabled = false;
+    $("hint").hidden = true;
+  } else {
+    btn.textContent = "Reveal answers";
+    btn.disabled = left > 0;
+    $("hint").hidden = left === 0;
+    $("hintText").textContent = `Answer ${left} more question${left === 1 ? "" : "s"} to unlock the answers.`;
+  }
+}
+
+function renderResults() {
+  const box = $("results");
+  box.hidden = !state.revealed;
+  if (!state.revealed) { box.textContent = ""; return; }
+  box.textContent = "";
+
+  const total = QUESTIONS.length;
+  const right = QUESTIONS.filter(isCorrect).length;
+  const pct = Math.round(right / total * 100);
+  const msg = pct >= 90 ? "Excellent! You really know your .NET."
+    : pct >= 70 ? "Solid work. Review the explanations for the ones you missed."
+    : pct >= 50 ? "Decent start. The explanations below cover the tricky parts."
+    : "Plenty to learn. Read through the explanations and try again.";
+
+  const score = el("div", "score");
+  score.append(el("span", "big", `${right} / ${total}`), el("span", "pct", `${pct}%`), el("p", "msg", msg));
+  box.appendChild(score);
+
+  const topics = el("div", "topics");
+  [...new Set(QUESTIONS.map(q => q.topic))].forEach(t => {
+    const qs = QUESTIONS.filter(q => q.topic === t);
+    const ok = qs.filter(isCorrect).length;
+    const row = el("div", "topic");
+    const track = el("div", "t");
+    const fill = el("div", "f");
+    fill.style.width = (ok / qs.length * 100) + "%";
+    track.appendChild(fill);
+    row.append(el("span", "name", t), track, el("span", "n", `${ok}/${qs.length}`));
+    topics.appendChild(row);
+  });
+  box.appendChild(topics);
+
+  const actions = el("div", "actions");
+  const toggle = el("label", "toggle");
+  const cb = document.createElement("input");
+  cb.type = "checkbox"; cb.checked = !!state.onlyWrong;
+  cb.addEventListener("change", () => {
+    state.onlyWrong = cb.checked; saveState();
+    $("quiz").classList.toggle("only-wrong", cb.checked);
+  });
+  toggle.append(cb, document.createTextNode("Show only questions I got wrong"));
+  const retake = el("button", null, "Retake quiz");
+  retake.addEventListener("click", retakeQuiz);
+  actions.append(toggle, retake);
+  box.appendChild(actions);
+}
+
+function reveal() {
+  state.revealed = true;
+  saveState();
+  renderAll();
+  $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function retakeQuiz() {
+  if (!confirm("Clear your answers and start over? Questions and options will be shuffled.")) return;
+  state = freshState();
+  state.order = shuffle(state.order);
+  saveState();
+  renderAll();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function jumpToNext() {
+  const id = unanswered()[0];
+  if (!id) return;
+  const card = $("card-" + id);
+  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+  setTimeout(() => card.querySelector("input")?.focus({ preventScroll: true }), 400);
+}
+
+function renderAll() { renderResults(); renderQuiz(); updateProgress(); }
+
+$("revealBtn").addEventListener("click", () => state.revealed ? retakeQuiz() : reveal());
+$("jumpBtn").addEventListener("click", jumpToNext);
+$("forceBtn").addEventListener("click", () => {
+  const left = unanswered().length;
+  if (confirm(`You still have ${left} unanswered question${left === 1 ? "" : "s"}. Reveal the answers anyway?`)) reveal();
+});
+
+renderAll();
+</script>
+</body>
+</html>
