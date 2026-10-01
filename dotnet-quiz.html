@@ -67,12 +67,18 @@
     color: var(--text);
     font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
-  code, pre { font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+  code, pre, textarea.answer { font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 16px; }
 
-  header.intro { padding: 40px 0 20px; }
-  header.intro h1 { margin: 0 0 6px; font-size: 1.9rem; letter-spacing: -.01em; }
-  header.intro p { margin: 0; color: var(--muted); }
+  header.intro { padding: 40px 0 16px; }
+  header.intro h1 { margin: 0 0 6px; font-size: 1.9rem; letter-spacing: -.01em; text-wrap: balance; }
+  header.intro p { margin: 0 0 14px; color: var(--muted); max-width: 65ch; }
+
+  /* Topic filters */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter { font-size: .85rem; padding: 5px 11px; border-radius: 99px; }
+  .filter .count { opacity: .7; font-variant-numeric: tabular-nums; margin-left: 2px; }
+  .filter[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 
   /* Sticky progress bar */
   .bar {
@@ -108,21 +114,25 @@
   .card {
     background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
     padding: 18px 18px 16px; margin: 0 0 16px; box-shadow: var(--shadow);
-    scroll-margin-top: 80px;
+    scroll-margin-top: 90px;
   }
   .card.flash { animation: flash 1.2s ease; }
   @keyframes flash { 0%, 40% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); } }
   .meta { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-size: .8rem; flex-wrap: wrap; }
   .num { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
   .chip { background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+  .chip.kind { background: var(--code-bg); color: var(--text); border: 1px solid var(--border); }
   .verdict { margin-left: auto; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
   .verdict.ok { background: var(--ok-soft); color: var(--ok); }
   .verdict.bad { background: var(--bad-soft); color: var(--bad); }
+  .verdict.muted { background: var(--code-bg); color: var(--muted); border: 1px solid var(--border); }
   .qtext { margin: 0 0 12px; font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; }
-  :not(pre) > code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; font-size: .88em; }
+  :not(pre) > code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; font-size: .88em; overflow-wrap: anywhere; }
+  .codeblock { margin: 0 0 14px; min-width: 0; }
+  .codelabel { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
   pre {
     background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px 14px; margin: 0 0 14px; overflow-x: auto; font-size: .88rem; line-height: 1.5;
+    padding: 12px 14px; margin: 0; overflow-x: auto; font-size: .86rem; line-height: 1.5; tab-size: 4;
   }
 
   .options { display: grid; gap: 8px; }
@@ -152,17 +162,46 @@
   .correct .tag { color: var(--ok); }
   .wrong .tag { color: var(--bad); }
 
-  .explain { margin: 12px 0 0; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--code-bg); border-radius: 0 8px 8px 0; font-size: .94rem; }
-  .explain strong { display: block; margin-bottom: 2px; }
+  /* Write-the-code questions */
+  .answer-label { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  textarea.answer {
+    display: block; width: 100%; min-height: 10em; resize: vertical;
+    font-size: .88rem; line-height: 1.5; tab-size: 4;
+    background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  }
+  textarea.answer:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  textarea.answer[readonly] { opacity: .9; }
+  .no-answer { color: var(--muted); font-style: italic; margin: 0; }
+
+  .card-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  .card-actions .note { color: var(--muted); font-size: .85rem; }
+
+  /* Explanations */
+  .explain { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); font-size: .95rem; }
+  .explain h4 { margin: 0 0 8px; font-size: .95rem; }
+  .explain h4:not(:first-child) { margin-top: 16px; }
+  .explain p { margin: 0 0 10px; max-width: 68ch; }
+  .explain .codeblock { margin: 0 0 12px; }
+  .tip { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
+  .tip strong { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); margin-bottom: 2px; }
+  .tip p { margin: 0; }
+
+  .grade { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+  .grade .q { font-weight: 600; margin-right: 4px; }
+  .grade button.yes[aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 600; }
+  .grade button.no[aria-pressed="true"] { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); font-weight: 600; }
 
   /* Results */
-  .results { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: var(--shadow); scroll-margin-top: 80px; }
+  .results { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: var(--shadow); scroll-margin-top: 90px; }
   .score { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
   .score .big { font-size: 2.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   .score .pct { font-size: 1.2rem; color: var(--muted); font-variant-numeric: tabular-nums; }
   .score .msg { margin: 6px 0 0; color: var(--muted); width: 100%; }
+  .split { margin: 10px 0 0; color: var(--muted); font-size: .92rem; font-variant-numeric: tabular-nums; }
+  .pending { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); font-size: .92rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .topics { display: grid; gap: 8px; margin: 18px 0; }
-  .topic { display: grid; grid-template-columns: minmax(0, 150px) 1fr auto; gap: 10px; align-items: center; font-size: .9rem; }
+  .topic { display: grid; grid-template-columns: minmax(0, 170px) 1fr auto; gap: 10px; align-items: center; font-size: .9rem; }
   .topic .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .topic .t { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
   .topic .f { height: 100%; background: var(--ok); }
@@ -171,7 +210,8 @@
   .toggle { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-size: .95rem; }
 
   .only-wrong .card.is-correct { display: none; }
-  footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 0 0 40px; }
+  .empty { color: var(--muted); text-align: center; padding: 30px 0; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 0 16px 40px; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -181,7 +221,7 @@
     header.intro { padding-top: 28px; }
     header.intro h1 { font-size: 1.5rem; }
     .card { padding: 14px; }
-    .topic { grid-template-columns: minmax(0, 110px) 1fr auto; }
+    .topic { grid-template-columns: minmax(0, 120px) 1fr auto; }
     .opt-text { flex-wrap: wrap; }
     .tag { flex-basis: 100%; margin-left: 26px; padding-left: 0; }
   }
@@ -192,20 +232,21 @@
 <header class="intro">
   <div class="wrap">
     <h1>.NET Knowledge Quiz</h1>
-    <p id="subtitle">Answer every question, then reveal the answers to see your score and an explanation for each one. Your answers are saved in this browser.</p>
+    <p>Pick an answer, then press <strong>Show answer</strong> to check that question right away, or finish everything and reveal all answers at once. For <strong>Write code</strong> questions, type your solution, compare it with the model answer and mark how you did. Your progress is saved in this browser.</p>
+    <div class="filters" id="filters" role="toolbar" aria-label="Filter questions by topic"></div>
   </div>
 </header>
 
 <div class="bar">
   <div class="wrap">
-    <span class="progress-text" id="progressText">0 / 0 <small>answered</small></span>
+    <span class="progress-text" id="progressText">0 / 0 <small>done</small></span>
     <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
-    <button class="primary" id="revealBtn" disabled>Reveal answers</button>
+    <button class="primary" id="revealBtn" disabled>Reveal all answers</button>
   </div>
   <div class="wrap hint" id="hint" style="padding-bottom:10px">
     <span id="hintText"></span>
     <button class="link" id="jumpBtn">Next unanswered</button>
-    <button class="link" id="forceBtn">Reveal anyway</button>
+    <button class="link" id="forceBtn">Reveal all anyway</button>
   </div>
   <div class="wrap confirm" id="confirmRow" role="alertdialog" aria-labelledby="confirmText" hidden>
     <span id="confirmText"></span>
@@ -217,61 +258,123 @@
 <div class="wrap">
   <section class="results" id="results" hidden></section>
   <main id="quiz"></main>
+  <p class="empty" id="empty" hidden>No questions match this filter.</p>
 </div>
 
-<footer>Covers C#, LINQ, async/await, the runtime, ASP.NET Core and EF Core.</footer>
+<footer>Covers C#, LINQ, async/await, threading and locks, the runtime, ASP.NET Core, EF Core and SQL.</footer>
 
 <script>
-/* Each question: options are written in their "natural" order; `answer` is the
-   index of the correct option. Options are shuffled per attempt. Text wrapped
-   in `backticks` is rendered as inline code. */
+/* ------------------------------------------------------------------------
+   Question format
+   Multiple choice: { id, topic, q, given?, lang?, options, answer, explain, tip }
+     - `answer` is the index of the correct option (options are shuffled per attempt).
+   Write code:      { id, topic, type: "code", lang, q, given?, givenLabel?, solution, explain, tip }
+   `explain` is a list of paragraphs (strings) and code blocks ({ src, label }).
+   In text, `backticks` render as inline code and **double asterisks** as bold.
+   ------------------------------------------------------------------------ */
+
+/* Tagged template for code: keeps backslashes and strips common indentation. */
+function src(strings, ...values) {
+  const lines = String.raw(strings, ...values).replace(/^\n/, "").replace(/\n\s*$/, "").split("\n");
+  const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+  return lines.map(l => l.slice(indent)).join("\n");
+}
+
 const QUESTIONS = [
-  // ---------- C# fundamentals ----------
+  /* =================== C# Fundamentals =================== */
   {
     id: "value-type", topic: "C# Fundamentals",
     q: "Which of these is a value type?",
     options: ["`string`", "`int[]`", "`DateTime`", "`object`"],
     answer: 2,
-    explain: "`DateTime` is a `struct`, so it's a value type. `string`, arrays (even arrays of value types like `int[]`) and `object` are all reference types."
+    explain: [
+      "A **value type** holds its data directly, so assigning it to another variable copies the whole value. A **reference type** variable holds a reference to an object on the heap, so assigning it copies only the reference and both variables then point at the same object.",
+      "`DateTime` is declared as a `struct`, which makes it a value type, like `int`, `bool`, `decimal`, `Guid` and every `enum`. `string`, `object`, every `class`, every delegate and every array (even `int[]`, an array of value types) are reference types.",
+      { label: "C#", src: src`
+        DateTime d1 = DateTime.Today;
+        DateTime d2 = d1;            // copies the value: d1 and d2 are independent
+
+        int[] a1 = { 1, 2, 3 };
+        int[] a2 = a1;               // copies the reference: same array
+        a2[0] = 99;
+        Console.WriteLine(a1[0]);    // 99
+      ` }
+    ],
+    tip: "If a type is declared with `struct` or `enum`, or is a built-in number, `bool` or `char`, it's a value type. Everything else is a reference type."
   },
   {
     id: "string-immutable", topic: "C# Fundamentals",
     q: "What does this print?",
-    code: [
-      'string a = "hello";',
-      'string b = a;',
-      'b += " world";',
-      'Console.WriteLine(a);'
-    ],
+    given: src`
+      string a = "hello";
+      string b = a;
+      b += " world";
+      Console.WriteLine(a);
+    `,
     options: ["`hello`", "`hello world`", "` world`", "It doesn't compile"],
     answer: 0,
-    explain: "Strings are immutable. `b += \" world\"` creates a brand-new string and points `b` at it; `a` still refers to the original `\"hello\"`."
+    explain: [
+      "`string` is a reference type, but it is **immutable**: once created, a string object never changes. `Replace`, `ToUpper`, `Trim` and the `+` operator all build a new string and return it.",
+      "After `string b = a;` both variables point at the same `\"hello\"` object. `b += \" world\"` means `b = b + \" world\"`, which creates a new string and re-points only `b`. Nothing changes the object `a` points to.",
+      { label: "C#", src: src`
+        // Each += allocates a new string and copies everything so far: O(n^2) in a loop
+        string s = "";
+        for (int i = 0; i < 1000; i++) s += i;
+
+        // StringBuilder appends into one growing buffer: O(n)
+        var sb = new StringBuilder();
+        for (int i = 0; i < 1000; i++) sb.Append(i);
+        string result = sb.ToString();
+      ` }
+    ],
+    tip: "Immutability makes strings safe to share between threads and to use as dictionary keys. For many appends in a loop, use `StringBuilder`."
   },
   {
     id: "boxing", topic: "C# Fundamentals",
     q: "What does this print?",
-    code: [
-      'int x = 5;',
-      'object o = x;',
-      'x = 10;',
-      'Console.WriteLine(o);'
-    ],
+    given: src`
+      int x = 5;
+      object o = x;
+      x = 10;
+      Console.WriteLine(o);
+    `,
     options: ["`5`", "`10`", "`null`", "It throws `InvalidCastException`"],
     answer: 0,
-    explain: "Assigning an `int` to `object` boxes it: a copy of the value is placed on the heap. Changing `x` afterwards doesn't affect the boxed copy."
+    explain: [
+      "**Boxing** happens when a value type is converted to `object` (or to an interface it implements). The runtime allocates a small object on the heap and copies the value into it. **Unboxing** copies the value back out.",
+      "The box holds its own copy, completely independent of `x`. Setting `x` to 10 afterwards doesn't touch the boxed 5.",
+      { label: "C#", src: src`
+        object o = 5;          // box: heap allocation + copy
+        int y = (int)o;        // unbox: copy back out
+        long z = (long)o;      // InvalidCastException: you must unbox to the exact type
+        long w = (int)o;       // fine: unbox to int, then widen to long
+      ` }
+    ],
+    tip: "Boxing allocates memory, so it matters in hot paths. Old non-generic collections like `ArrayList` box every `int`; generic ones like `List<int>` don't."
   },
   {
     id: "ref-equality", topic: "C# Fundamentals",
     q: "What does this print?",
-    code: [
-      'object a = "abc";',
-      'object b = new string("abc".ToCharArray());',
-      'Console.WriteLine(a == b);',
-      'Console.WriteLine(a.Equals(b));'
-    ],
+    given: src`
+      object a = "abc";
+      object b = new string("abc".ToCharArray());
+      Console.WriteLine(a == b);
+      Console.WriteLine(a.Equals(b));
+    `,
     options: ["`True` then `True`", "`False` then `True`", "`True` then `False`", "`False` then `False`"],
     answer: 1,
-    explain: "Both variables are typed as `object`, so `==` is chosen at compile time as reference equality, and `new string(...)` creates a separate instance → `False`. `Equals` is virtual, so `string.Equals` runs and compares the characters → `True`."
+    explain: [
+      "Operators like `==` are chosen at compile time from the **declared** types. Both variables are declared as `object`, so the compiler uses `object`'s `==`, which compares references. `new string(...)` always creates a new object, so the references differ and the result is `False`.",
+      "`Equals` is a **virtual** method, so the call is dispatched on the **runtime** type. The objects really are strings, so `string.Equals` runs and compares the characters: `True`.",
+      { label: "C#", src: src`
+        string s1 = "abc";
+        string s2 = new string("abc".ToCharArray());
+        Console.WriteLine(s1 == s2);                   // True: string's == compares contents
+        Console.WriteLine((object)s1 == (object)s2);   // False: reference comparison
+        Console.WriteLine(ReferenceEquals(s1, s2));    // False: always a reference check
+      ` }
+    ],
+    tip: "Operators are resolved at compile time (declared types). Virtual methods are resolved at run time (actual types). That difference explains most equality surprises in C#."
   },
   {
     id: "const-vs-readonly", topic: "C# Fundamentals",
@@ -283,63 +386,125 @@ const QUESTIONS = [
       "It sees `20` only after a restart"
     ],
     answer: 1,
-    explain: "A `const` is a compile-time literal baked into every call site. Use `static readonly` for values that may change between versions; those are read at run time."
+    explain: [
+      "A `const` is a compile-time constant. When another assembly uses `MaxItems`, the compiler copies the literal `10` straight into that assembly's IL, with no reference back to the field.",
+      "So replacing only the library DLL changes nothing for existing callers: they keep using `10` until they are recompiled. A `static readonly` field is read at run time, so callers would pick up the new value.",
+      { label: "C#", src: src`
+        public const double Pi = 3.14159;                    // will never change: const is fine
+        public static readonly int MaxItems = 10;            // may change between versions
+        public static readonly TimeSpan Timeout =
+            TimeSpan.FromSeconds(30);                        // const can't hold this type at all
+      ` }
+    ],
+    tip: "Use `const` only for values that truly never change. For anything configuration-like in a public API, use `static readonly`."
   },
   {
     id: "closure-loop", topic: "C# Fundamentals",
     q: "What does this print?",
-    code: [
-      'var actions = new List<Action>();',
-      'for (int i = 0; i < 3; i++)',
-      '    actions.Add(() => Console.Write(i));',
-      'foreach (var a in actions) a();'
-    ],
+    given: src`
+      var actions = new List<Action>();
+      for (int i = 0; i < 3; i++)
+          actions.Add(() => Console.Write(i));
+      foreach (var a in actions) a();
+    `,
     options: ["`012`", "`333`", "`222`", "`000`"],
     answer: 1,
-    explain: "A `for` loop has a single `i` variable shared by every lambda. By the time the lambdas run, `i` is `3`. (A `foreach` loop variable is fresh per iteration since C# 5, so it would print `012`.)"
+    explain: [
+      "A lambda doesn't copy the variables it uses. It **captures the variable itself**: the compiler moves it into a hidden class that both the loop and the lambda share.",
+      "A `for` loop declares one `i` for the whole loop, so all three lambdas capture the same variable. They run only after the loop has finished, when `i` is 3, so each prints 3.",
+      "`foreach` behaves differently. Since C# 5 each iteration gets a fresh loop variable, so the same lambdas inside a `foreach` print `012`.",
+      { label: "C#", src: src`
+        for (int i = 0; i < 3; i++)
+        {
+            int copy = i;                          // a new variable every iteration
+            actions.Add(() => Console.Write(copy));
+        }
+        // prints 012
+      ` }
+    ],
+    tip: "A lambda sees the variable's value at the moment the lambda runs, not when it was created."
   },
   {
     id: "overflow", topic: "C# Fundamentals",
     q: "In a default project (no `checked` settings), what does this print?",
-    code: [
-      'int max = int.MaxValue;',
-      'int y = max + 1;',
-      'Console.WriteLine(y);'
-    ],
+    given: src`
+      int max = int.MaxValue;
+      int y = max + 1;
+      Console.WriteLine(y);
+    `,
     options: ["`2147483648`", "It throws `OverflowException`", "`-2147483648`", "`0`"],
     answer: 2,
-    explain: "Integer arithmetic is `unchecked` by default, so it silently wraps around to `int.MinValue`. Wrap it in `checked(...)` or enable `<CheckForOverflowUnderflow>` to get an `OverflowException` instead."
+    explain: [
+      "`int` is a 32-bit signed number with a range of -2,147,483,648 to 2,147,483,647. C# arithmetic is **unchecked** by default: on overflow the extra high bit is discarded, so `MaxValue + 1` wraps around to `MinValue`.",
+      "If `max` were a `const`, the compiler would spot the overflow and refuse to compile. Because it's a variable, the check could only happen at run time, and unchecked is the default for performance.",
+      { label: "C#", src: src`
+        int a = unchecked(max + 1);   // -2147483648 (the default behavior)
+        int b = checked(max + 1);     // throws OverflowException
+
+        checked
+        {
+            int c = max + 1;          // every operation in this block is checked
+        }
+      ` }
+    ],
+    tip: "Where overflow would be a bug (money, counters, sizes), use `checked` or a bigger type such as `long` or `decimal`. You can enable checking for the whole project with `<CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>`."
   },
   {
     id: "switch-pattern", topic: "C# Fundamentals",
     q: "What is the value of `r`?",
-    code: [
-      'object v = 42;',
-      'string r = v switch',
-      '{',
-      '    string s           => "string",',
-      '    int n when n > 40  => "big int",',
-      '    int                => "int",',
-      '    _                  => "other"',
-      '};'
-    ],
+    given: src`
+      object v = 42;
+      string r = v switch
+      {
+          string s           => "string",
+          int n when n > 40  => "big int",
+          int                => "int",
+          _                  => "other"
+      };
+    `,
     options: ['`"string"`', '`"big int"`', '`"int"`', '`"other"`'],
     answer: 1,
-    explain: "Switch-expression arms are tested top to bottom. `42` is an `int` and satisfies the `when n > 40` guard, so the second arm wins."
+    explain: [
+      "A switch expression tests its arms **from top to bottom** and uses the first one that matches. `42` isn't a `string`, so the first arm fails. The second arm is a type pattern plus a `when` guard: `42` is an `int` and `42 > 40`, so the result is `\"big int\"`.",
+      "The compiler checks the order for you. If an arm could never match because an earlier one already covers every case it handles, you get a compile error. That's why the specific `int n when ...` arm has to come before the general `int` arm.",
+      { label: "C#", src: src`
+        string Describe(object o) => o switch
+        {
+            null                  => "nothing",
+            int and > 100         => "large int",       // type + relational pattern
+            int                   => "int",
+            string { Length: 0 }  => "empty string",    // property pattern
+            string s              => $"text: {s}",
+            _                     => "something else"
+        };
+      ` }
+    ],
+    tip: "Order arms from most specific to most general, and end with the discard `_`. If nothing matches, a switch expression throws `SwitchExpressionException`."
   },
   {
     id: "record-equality", topic: "C# Fundamentals",
     q: "What does this print?",
-    code: [
-      'public record Person(string Name);',
-      '',
-      'var a = new Person("Ann");',
-      'var b = new Person("Ann");',
-      'Console.WriteLine(a == b);'
-    ],
+    given: src`
+      public record Person(string Name);
+
+      var a = new Person("Ann");
+      var b = new Person("Ann");
+      Console.WriteLine(a == b);
+    `,
     options: ["`True`", "`False`", "It doesn't compile: records can't use `==`", "It depends on `GetHashCode`"],
     answer: 0,
-    explain: "Records get compiler-generated value equality: `Equals`, `==`, `!=` and `GetHashCode` compare the properties, not the references."
+    explain: [
+      "A `record` is a class (a reference type) that the compiler fills in with **value-based equality**. It generates `Equals`, `GetHashCode`, `==` and `!=` that compare the properties, plus a readable `ToString`, a deconstructor and support for `with` expressions.",
+      "So `a == b` compares the property values. Both have `Name == \"Ann\"`, so it prints `True`, even though `a` and `b` are two separate objects. With a normal `class Person`, `==` would compare references and print `False`.",
+      { label: "C#", src: src`
+        var c = a with { Name = "Bob" };          // copy with one property changed
+        Console.WriteLine(c);                     // Person { Name = Bob }
+        Console.WriteLine(ReferenceEquals(a, b)); // False: still two objects
+
+        var (name) = a;                           // deconstruction
+      ` }
+    ],
+    tip: "Records suit DTOs, messages and other immutable data. Use `record struct` when you want a value type with the same conveniences."
   },
   {
     id: "nrt", topic: "C# Fundamentals",
@@ -351,22 +516,84 @@ const QUESTIONS = [
       "It throws at run time if `null` is assigned to a `string` without `?`"
     ],
     answer: 1,
-    explain: "Nullable reference types are purely a static-analysis feature. Nothing changes at run time; the compiler just tracks null-state and emits warnings."
+    explain: [
+      "With `<Nullable>enable</Nullable>`, the compiler treats `string` as \"should never be null\" and `string?` as \"may be null\". It then tracks the null-state of variables through your code and warns when you might dereference null, or assign null to something that shouldn't hold it.",
+      "This all happens at compile time. Unlike `int?` (which really is a different type, `Nullable<int>`), `string?` compiles to a plain `string` with an attribute. Nothing is checked at run time, so nulls can still arrive through deserialization, reflection or code that ignores the warnings.",
+      { label: "C#", src: src`
+        string? name = GetName();
+        Console.WriteLine(name.Length);       // warning CS8602: possible null dereference
+
+        if (name is not null)
+            Console.WriteLine(name.Length);   // no warning: the compiler knows it's not null here
+
+        Console.WriteLine(name!.Length);      // "!" silences the warning; you take responsibility
+        int len = name?.Length ?? 0;          // safe: 0 when name is null
+      ` }
+    ],
+    tip: "Treat nullable warnings as errors in new projects (`<WarningsAsErrors>nullable</WarningsAsErrors>`) to get the full benefit."
+  },
+  {
+    id: "first-unique-char", topic: "C# Fundamentals", type: "code", lang: "C#",
+    q: "Write a method that returns the first character in a string that doesn't repeat, or `null` if there isn't one. For example, `\"swiss\"` returns `'w'`.",
+    given: src`
+      public static char? FirstNonRepeating(string s)
+      {
+          // your code
+      }
+    `,
+    givenLabel: "Signature",
+    solution: src`
+      public static char? FirstNonRepeating(string s)
+      {
+          var counts = new Dictionary<char, int>();
+          foreach (char c in s)
+              counts[c] = counts.GetValueOrDefault(c) + 1;   // pass 1: count
+
+          foreach (char c in s)                                // pass 2: original order
+              if (counts[c] == 1)
+                  return c;
+
+          return null;
+      }
+    `,
+    explain: [
+      "Use two passes over the string. Pass 1 counts every character in a dictionary. Pass 2 walks the string again **in its original order** and returns the first character whose count is 1. Walking the string rather than the dictionary is what makes it the \"first\" one.",
+      "This runs in **O(n)** time. The naive approach checks each character against every other character (nested loops, or `IndexOf` plus `LastIndexOf`) and is O(n²), which interviewers want you to avoid.",
+      { label: "C# (LINQ alternative)", src: src`
+        // GroupBy keeps groups in order of first appearance, so this is also correct and O(n)
+        char? first = s.GroupBy(c => c)
+                       .Where(g => g.Count() == 1)
+                       .Select(g => (char?)g.Key)
+                       .FirstOrDefault();
+      ` },
+      "Common follow-ups: make it case-insensitive (count `char.ToLowerInvariant(c)`), or, for ASCII-only input, use an `int[128]` array instead of a dictionary, which is faster."
+    ],
+    tip: "In an interview, say the time complexity out loud and mention the O(n²) approach you deliberately avoided."
   },
 
-  // ---------- LINQ & collections ----------
+  /* =================== LINQ & Collections =================== */
   {
     id: "deferred", topic: "LINQ & Collections",
     q: "What does this print?",
-    code: [
-      'var list = new List<int> { 1, 2, 3 };',
-      'var query = list.Where(x => x > 1);',
-      'list.Add(4);',
-      'Console.WriteLine(query.Count());'
-    ],
+    given: src`
+      var list = new List<int> { 1, 2, 3 };
+      var query = list.Where(x => x > 1);
+      list.Add(4);
+      Console.WriteLine(query.Count());
+    `,
     options: ["`2`", "`3`", "`4`", "It throws `InvalidOperationException`"],
     answer: 1,
-    explain: "`Where` uses deferred execution: nothing is filtered until the query is enumerated. By the time `Count()` runs, the list is `1,2,3,4`, so 2, 3 and 4 match."
+    explain: [
+      "Most LINQ operators (`Where`, `Select`, `OrderBy`, ...) don't do any work when you call them. They return an object that **describes** the query. The work happens only when something enumerates it: a `foreach`, `Count()`, `ToList()` and so on. This is called **deferred execution**.",
+      "So `query` is a recipe: \"items of `list` greater than 1\". `Count()` runs it after `4` has been added, sees `2, 3, 4` and returns 3.",
+      "The flip side is that enumerating the same query twice runs it twice. With an EF Core query, that means two database round trips.",
+      { label: "C#", src: src`
+        var snapshot = list.Where(x => x > 1).ToList();   // runs now and stores the results
+        list.Add(5);
+        Console.WriteLine(snapshot.Count);                // still 3: snapshot is a fixed list
+      ` }
+    ],
+    tip: "Call `ToList()` or `ToArray()` when you want a fixed snapshot, or when you'll enumerate the results more than once."
   },
   {
     id: "iqueryable", topic: "LINQ & Collections",
@@ -378,44 +605,118 @@ const QUESTIONS = [
       "`IQueryable<T>` caches its results after the first enumeration"
     ],
     answer: 2,
-    explain: "LINQ on `IEnumerable<T>` runs compiled delegates in memory. LINQ on `IQueryable<T>` captures `Expression<Func<...>>` trees that the provider inspects and translates, e.g. into a SQL `WHERE` clause."
+    explain: [
+      "LINQ on `IEnumerable<T>` takes **delegates** (`Func<T, bool>`): compiled code that runs in your process, item by item. LINQ on `IQueryable<T>` takes **expression trees** (`Expression<Func<T, bool>>`): a data structure describing the code, which a provider can inspect and translate.",
+      "EF Core uses this to turn `Where(u => u.Age > 18)` into `WHERE Age > 18` in SQL. The database does the filtering and only the matching rows travel over the network.",
+      { label: "C#", src: src`
+        IQueryable<User> q = db.Users.Where(u => u.Age > 18);   // becomes SQL: WHERE Age > 18
+
+        IEnumerable<User> e = db.Users.AsEnumerable()
+                                .Where(u => u.Age > 18);        // loads ALL users, filters in memory
+      ` }
+    ],
+    tip: "Watch out when you pass an EF query to a method that takes `IEnumerable<T>`. From that point on, every operator runs in memory after loading the whole table."
   },
   {
     id: "yield", topic: "LINQ & Collections",
     q: "What does this print?",
-    code: [
-      'IEnumerable<int> Numbers()',
-      '{',
-      '    Console.Write("A");',
-      '    yield return 1;',
-      '    Console.Write("B");',
-      '    yield return 2;',
-      '}',
-      '',
-      'var n = Numbers();',
-      'Console.Write("C");',
-      'foreach (var i in n) Console.Write(i);'
-    ],
+    given: src`
+      IEnumerable<int> Numbers()
+      {
+          Console.Write("A");
+          yield return 1;
+          Console.Write("B");
+          yield return 2;
+      }
+
+      var n = Numbers();
+      Console.Write("C");
+      foreach (var i in n) Console.Write(i);
+    `,
     options: ["`AB12C`", "`CA1B2`", "`A1B2C`", "`CAB12`"],
     answer: 1,
-    explain: "Calling an iterator method just creates the state machine; none of its body runs until `MoveNext()` is called. So `C` prints first, then the body runs lazily one `yield` at a time."
+    explain: [
+      "A method containing `yield return` is an **iterator**. The compiler rewrites it into a state machine class, and calling `Numbers()` only creates that object. None of your code inside it runs yet.",
+      "Each call to `MoveNext()` (which `foreach` makes for you) runs the body until the next `yield return`, hands back that value and pauses there. So the order is: `C` (before the loop), then `A` and `1` (first `MoveNext`), then `B` and `2` (second `MoveNext`).",
+      { label: "C#", src: src`
+        // Trap: this check doesn't run until someone enumerates the result
+        IEnumerable<int> Take(IEnumerable<int> source, int count)
+        {
+            if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
+            foreach (var x in source) { if (count-- == 0) yield break; yield return x; }
+        }
+      ` }
+    ],
+    tip: "Because iterators are lazy, argument checks inside them run late. To make them fail immediately, validate in a normal method and call a private iterator from it."
   },
   {
     id: "immediate", topic: "LINQ & Collections",
     q: "Which LINQ method forces the query to execute immediately?",
     options: ["`Where`", "`Select`", "`OrderBy`", "`ToList`"],
     answer: 3,
-    explain: "`ToList`, `ToArray`, `ToDictionary`, `Count`, `First`, `Sum` and similar methods enumerate the source right away. `Where`, `Select` and `OrderBy` are deferred."
+    explain: [
+      "LINQ operators fall into two groups. **Deferred** operators return a new query and do no work yet: `Where`, `Select`, `OrderBy`, `GroupBy`, `Skip`, `Take` and so on. **Immediate** operators enumerate the source right away and return a concrete result: `ToList`, `ToArray`, `ToDictionary`, `Count`, `Sum`, `Any`, `First`, `Single`, `Max` and so on.",
+      "A quick rule: if the return type is `IEnumerable<T>` or `IQueryable<T>`, the operator is deferred. If it returns a collection or a single value, it runs now."
+    ],
+    tip: "`OrderBy` is deferred, but once enumeration starts it has to read the whole source before returning the first item, because it must sort. Deferred doesn't always mean streaming."
   },
   {
     id: "dict-complexity", topic: "LINQ & Collections",
     q: "What is the average time complexity of looking up a key in `Dictionary<TKey, TValue>`?",
     options: ["O(1)", "O(log n)", "O(n)", "O(n log n)"],
     answer: 0,
-    explain: "`Dictionary` is a hash table: lookups are O(1) on average (O(n) only in pathological hash-collision cases). `SortedDictionary` is the O(log n) one."
+    explain: [
+      "`Dictionary<TKey, TValue>` is a **hash table**. To find a key it calls `GetHashCode()`, uses the hash to jump straight to a bucket, then checks the few entries in that bucket with `Equals()`. The cost doesn't grow with the number of items, so a lookup is O(1) on average.",
+      "The worst case is O(n), when many keys share a hash code and pile into one bucket. That's why a custom key type must override `GetHashCode` and `Equals` consistently, with a hash that spreads values well.",
+      { label: "Lookup cost for n items", src: src`
+        List<T>.Contains                 O(n)       scans every item
+        SortedDictionary.TryGetValue     O(log n)   balanced binary tree
+        Dictionary.TryGetValue           O(1)       hash lookup
+        HashSet<T>.Contains              O(1)       hash lookup, keys only
+      ` }
+    ],
+    tip: "Use `TryGetValue` instead of `ContainsKey` followed by the indexer. It does one lookup instead of two."
+  },
+  {
+    id: "linq-top-customers", topic: "LINQ & Collections", type: "code", lang: "C#",
+    q: "Given a `List<Order> orders`, use LINQ to return the top 3 customers by total amount spent, highest first. Count only orders whose `Status` is `\"Paid\"`.",
+    given: src`
+      public record Order(int Id, string CustomerName, decimal Amount, string Status);
+
+      List<Order> orders = LoadOrders();
+    `,
+    givenLabel: "Given",
+    solution: src`
+      var top3 = orders
+          .Where(o => o.Status == "Paid")
+          .GroupBy(o => o.CustomerName)
+          .Select(g => new { CustomerName = g.Key, Total = g.Sum(o => o.Amount) })
+          .OrderByDescending(x => x.Total)
+          .Take(3)
+          .ToList();
+
+      foreach (var c in top3)
+          Console.WriteLine($"{c.CustomerName}: {c.Total:C}");
+    `,
+    explain: [
+      "Read it as a pipeline. **Filter** first, so there are fewer items to group. **Group** by customer. **Project** each group into one result with the summed amount. **Sort** by that total, descending. **Take** the first 3.",
+      "`GroupBy` returns `IGrouping<TKey, TElement>` objects: `g.Key` is the customer name, and `g` itself is the sequence of that customer's orders. That's why `g.Sum(o => o.Amount)` works.",
+      { label: "C# (query syntax)", src: src`
+        var top3 = (from o in orders
+                    where o.Status == "Paid"
+                    group o by o.CustomerName into g
+                    let total = g.Sum(o => o.Amount)
+                    orderby total descending
+                    select new { CustomerName = g.Key, Total = total })
+                   .Take(3)
+                   .ToList();
+      ` },
+      "If `orders` were an EF Core `DbSet`, the same method chain would be translated into a single SQL query using `GROUP BY`, `SUM`, `ORDER BY` and `TOP 3`."
+    ],
+    tip: "Mention ties: if the 3rd and 4th customers have equal totals, `Take(3)` drops one of them arbitrarily. Add `.ThenBy(x => x.CustomerName)` for a stable result."
   },
 
-  // ---------- Async ----------
+  /* =================== Async & Threading =================== */
   {
     id: "async-void", topic: "Async & Threading",
     q: "Why should you avoid `async void` methods (outside of event handlers)?",
@@ -426,19 +727,45 @@ const QUESTIONS = [
       "They are slower than `async Task` because they allocate more"
     ],
     answer: 1,
-    explain: "An `async void` method has no `Task` to observe. Exceptions are re-raised on the `SynchronizationContext` (or thread pool), where they usually terminate the app. Return `Task` instead."
+    explain: [
+      "An `async Task` method returns a `Task` that carries its result **and any exception**. The caller can `await` it; the exception is then rethrown at the `await`, where a normal `try/catch` handles it.",
+      "An `async void` method returns nothing, so there's nowhere to put an exception. It's raised directly on the `SynchronizationContext` that was active when the method started, or on the thread pool if there was none, and an unhandled exception on the thread pool terminates the process. The caller also has no way to know when the method has finished.",
+      { label: "C#", src: src`
+        async void Bad()  { await Task.Delay(10); throw new Exception("boom"); }
+        async Task Good() { await Task.Delay(10); throw new Exception("boom"); }
+
+        try { Bad(); }        catch { /* never runs: the exception escapes and can crash the app */ }
+        try { await Good(); } catch { /* runs: the exception travels through the Task */ }
+      ` }
+    ],
+    tip: "The only legitimate use is event handlers (`button.Click += async (s, e) => ...`), because their signature must return `void`. Put a `try/catch` around their body."
   },
   {
     id: "whenall", topic: "Async & Threading",
     q: "Roughly how long does this take?",
-    code: [
-      'var t1 = Task.Delay(1000);',
-      'var t2 = Task.Delay(1000);',
-      'await Task.WhenAll(t1, t2);'
-    ],
+    given: src`
+      var t1 = Task.Delay(1000);
+      var t2 = Task.Delay(1000);
+      await Task.WhenAll(t1, t2);
+    `,
     options: ["~0 seconds", "~1 second", "~2 seconds", "It never completes"],
     answer: 1,
-    explain: "Both delays start as soon as `Task.Delay` is called, so they run concurrently. `WhenAll` completes when the slower one does, about 1 second."
+    explain: [
+      "A `Task` represents work that is **already running**. `Task.Delay(1000)` starts its timer the moment it's called, so both timers are running before the `await` is reached.",
+      "`Task.WhenAll` returns a task that completes when all of them have completed. The total time is about the slowest one, roughly 1 second.",
+      { label: "C#", src: src`
+        // Sequential: ~2 seconds (the second call starts only after the first finishes)
+        await Task.Delay(1000);
+        await Task.Delay(1000);
+
+        // Concurrent: ~1 second
+        Task<User>  userTask   = GetUserAsync(id);    // start both...
+        Task<Order[]> ordersTask = GetOrdersAsync(id);
+        await Task.WhenAll(userTask, ordersTask);     // ...then wait for both
+        var user = userTask.Result;                   // safe: already completed
+      ` }
+    ],
+    tip: "For independent I/O (calling several APIs, querying several services), start all the tasks first and await them together."
   },
   {
     id: "configureawait", topic: "Async & Threading",
@@ -450,7 +777,27 @@ const QUESTIONS = [
       "Makes the call synchronous"
     ],
     answer: 2,
-    explain: "By default `await` captures the current context (e.g. a UI thread) and posts the continuation back to it. `ConfigureAwait(false)` lets the rest of the method run on whatever thread completes the task, which is common in library code."
+    explain: [
+      "When you `await` a task that hasn't finished, the compiler captures the current **SynchronizationContext**, if there is one, and later resumes the rest of your method through it. In WPF or WinForms that context is the UI thread, which is why you can update controls after an `await`.",
+      "`ConfigureAwait(false)` says \"I don't need that context; continue wherever the task completed\", usually on a thread-pool thread. That is slightly cheaper, and it avoids a deadlock if someone blocks on your code with `.Result` on a UI thread.",
+      "It does not start a new thread and doesn't change how `SomethingAsync` runs. It only affects where the code after the `await` continues.",
+      { label: "C#", src: src`
+        // Library code: no UI here, so don't capture the context
+        public async Task<string> LoadAsync(string path)
+        {
+            using var reader = new StreamReader(path);
+            return await reader.ReadToEndAsync().ConfigureAwait(false);
+        }
+
+        // UI code: we need to get back to the UI thread to update the label
+        private async void Button_Click(object sender, EventArgs e)
+        {
+            string text = await LoadAsync("data.txt");   // no ConfigureAwait(false) here
+            label.Text = text;
+        }
+      ` }
+    ],
+    tip: "Rule of thumb: use `ConfigureAwait(false)` in reusable library code. App code usually doesn't need it, and ASP.NET Core has no SynchronizationContext at all."
   },
   {
     id: "await-lock", topic: "Async & Threading",
@@ -462,7 +809,27 @@ const QUESTIONS = [
       "It deadlocks at run time"
     ],
     answer: 2,
-    explain: "The compiler forbids it (CS1996): `Monitor` locks are thread-affine, but code after an `await` may resume on another thread. `SemaphoreSlim` with `WaitAsync()`/`Release()` is the usual async-friendly alternative."
+    explain: [
+      "`lock` uses `Monitor`, and a monitor is **owned by a thread**: only the thread that took it may release it. After an `await`, the method can resume on a different thread, which would then try to release a lock it doesn't own. The compiler prevents this with error CS1996.",
+      "Holding a lock during a slow `await` would also block every other thread for the whole I/O wait.",
+      { label: "C#", src: src`
+        private readonly SemaphoreSlim _gate = new(1, 1);   // 1 slot = one caller at a time
+
+        public async Task SaveAsync(string text)
+        {
+            await _gate.WaitAsync();          // asynchronously wait for the slot
+            try
+            {
+                await File.WriteAllTextAsync("data.txt", text);
+            }
+            finally
+            {
+                _gate.Release();              // always give the slot back, even on exceptions
+            }
+        }
+      ` }
+    ],
+    tip: "`SemaphoreSlim` isn't tied to a thread, so it's safe across `await`. `SemaphoreSlim(1, 1)` is the standard async lock in .NET."
   },
   {
     id: "valuetask", topic: "Async & Threading",
@@ -474,7 +841,23 @@ const QUESTIONS = [
       "It can only represent results that are already available synchronously"
     ],
     answer: 1,
-    explain: "`ValueTask<T>` is a struct that avoids allocating when the result is often available synchronously, but its backing source may be reused. Await it once, or call `.AsTask()` if you need to await it more than once."
+    explain: [
+      "`Task<T>` is a class, so an async method returning it usually allocates. `ValueTask<T>` is a struct that can hold the result directly when it's available synchronously, for example on a cache hit, so no allocation happens.",
+      "The catch: when the operation is truly asynchronous, a `ValueTask<T>` may be backed by a pooled object that gets reused once you've awaited it. Awaiting it a second time, awaiting it from two places, or reading `.Result` before it completes can return wrong data.",
+      { label: "C#", src: src`
+        public ValueTask<User> GetUserAsync(int id) =>
+            _cache.TryGetValue(id, out var user)
+                ? ValueTask.FromResult(user)            // sync path: no allocation
+                : new ValueTask<User>(LoadAsync(id));   // async path wraps a Task
+
+        var vt = GetUserAsync(1);
+        var u1 = await vt;
+        var u2 = await vt;                    // WRONG: never await a ValueTask twice
+
+        Task<User> t = GetUserAsync(1).AsTask();   // convert if you need to await it more than once
+      ` }
+    ],
+    tip: "Default to `Task<T>`. Use `ValueTask<T>` only on hot paths that usually complete synchronously, and await each one exactly once."
   },
   {
     id: "cancellation", topic: "Async & Threading",
@@ -486,16 +869,419 @@ const QUESTIONS = [
       "Nothing, unless `cts.Dispose()` is also called"
     ],
     answer: 1,
-    explain: "Cancellation in .NET is cooperative. Your code (or the APIs you pass the token to) must observe it, e.g. by calling `token.ThrowIfCancellationRequested()`."
+    explain: [
+      "Cancellation in .NET is **cooperative**. `Cancel()` doesn't forcibly stop anything. It sets `IsCancellationRequested` on every token from that source and runs any registered callbacks. The code doing the work has to notice and stop itself.",
+      "Built-in async APIs (`HttpClient`, `Task.Delay`, EF Core, streams) watch the token for you and throw `OperationCanceledException`. In your own loops, check it yourself.",
+      { label: "C#", src: src`
+        async Task ProcessAsync(IEnumerable<Item> items, CancellationToken ct)
+        {
+            foreach (var item in items)
+            {
+                ct.ThrowIfCancellationRequested();   // your own check
+                await SaveAsync(item, ct);           // pass it down to every async call
+            }
+        }
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)); // auto-cancel after 5 s
+        try { await ProcessAsync(items, cts.Token); }
+        catch (OperationCanceledException) { Console.WriteLine("Timed out"); }
+      ` }
+    ],
+    tip: "Accept a `CancellationToken` in long-running async methods and pass it to every async call inside. In ASP.NET Core, `HttpContext.RequestAborted` is cancelled when the client disconnects."
+  },
+  {
+    id: "throttled-downloads", topic: "Async & Threading", type: "code", lang: "C#",
+    q: "Write an async method that downloads a list of URLs concurrently, with **at most 4 requests in flight** at any time, and returns each URL with the length of its content.",
+    given: src`
+      public static async Task<Dictionary<string, int>> DownloadAllAsync(
+          IEnumerable<string> urls, HttpClient http, CancellationToken ct)
+      {
+          // your code
+      }
+    `,
+    givenLabel: "Signature",
+    solution: src`
+      public static async Task<Dictionary<string, int>> DownloadAllAsync(
+          IEnumerable<string> urls, HttpClient http, CancellationToken ct)
+      {
+          var results = new ConcurrentDictionary<string, int>();
+
+          await Parallel.ForEachAsync(
+              urls,
+              new ParallelOptions { MaxDegreeOfParallelism = 4, CancellationToken = ct },
+              async (url, token) =>
+              {
+                  string body = await http.GetStringAsync(url, token);
+                  results[url] = body.Length;
+              });
+
+          return new Dictionary<string, int>(results);
+      }
+    `,
+    explain: [
+      "Starting every request at once with `Task.WhenAll` can overload the server or your connection pool. Doing them one by one is slow. **Throttling** is the middle ground: a fixed number of requests in flight at once.",
+      "`Parallel.ForEachAsync` (.NET 6+) is built for this. `MaxDegreeOfParallelism = 4` means at most 4 callbacks run at once, and it passes the cancellation token through. Results go into a `ConcurrentDictionary` because several callbacks write at the same time, and a plain `Dictionary` isn't thread-safe.",
+      { label: "C# (classic SemaphoreSlim version, any .NET version)", src: src`
+        var gate = new SemaphoreSlim(4);              // 4 slots
+
+        var tasks = urls.Select(async url =>
+        {
+            await gate.WaitAsync(ct);                 // wait for a free slot
+            try
+            {
+                string body = await http.GetStringAsync(url, ct);
+                return (Url: url, Length: body.Length);
+            }
+            finally
+            {
+                gate.Release();                       // free the slot, even on failure
+            }
+        });
+
+        var pairs = await Task.WhenAll(tasks);
+        return pairs.ToDictionary(p => p.Url, p => p.Length);
+      ` },
+      "In the semaphore version all tasks are created up front, but each must get one of the 4 slots before sending its request. The `try/finally` guarantees the slot is returned even if a request throws."
+    ],
+    tip: "Be ready to discuss errors. `await Task.WhenAll(...)` waits for every task and then rethrows the first exception. `Parallel.ForEachAsync` stops starting new items after a failure."
   },
 
-  // ---------- Runtime & memory ----------
+  /* =================== Threading & Locks =================== */
+  {
+    id: "lock-vs-mutex", topic: "Threading & Locks",
+    q: "What is the main difference between `lock` and `System.Threading.Mutex`?",
+    options: [
+      "A `Mutex` can be named and shared between processes; `lock` only coordinates threads inside one process",
+      "`lock` works across processes; `Mutex` only inside one process",
+      "`Mutex` is faster than `lock` because it doesn't involve the operating system",
+      "There's no difference; `lock` is just shorter syntax for `Mutex`"
+    ],
+    answer: 0,
+    explain: [
+      "`lock` (built on `Monitor`) is a lightweight lock that lives inside your process. When there's no contention it never calls into the operating system, so it's very fast, but it can only coordinate threads within one process.",
+      "`Mutex` wraps an **operating-system kernel object**. Because the OS owns it, a **named** mutex can be opened by any process on the machine. That's what makes it suitable for cross-process coordination, such as letting only one copy of an app run. The price is that every acquire and release is a call into the kernel, which is much slower than an uncontended `lock`.",
+      { label: "Comparison", src: src`
+                        lock/Monitor   Mutex           SemaphoreSlim    Semaphore
+        Scope           one process    cross-process   one process      cross-process
+                                       (when named)                     (named; Windows only)
+        Owned by thread yes            yes             no               no
+        Use with await  no             no              yes (WaitAsync)  no
+        Holders at once 1              1               N                N
+        Cost            very low       high (kernel)   low              high (kernel)
+      ` }
+    ],
+    tip: "Use `lock` for thread safety inside a process, `SemaphoreSlim` when you need `await`, and `Mutex` only when separate processes must coordinate."
+  },
+  {
+    id: "lock-expansion", topic: "Threading & Locks",
+    q: "For `lock (obj) { ... }` where `obj` is a plain `object`, what does the compiler generate?",
+    options: [
+      "A `Mutex` created and disposed around the block",
+      "`Monitor.Enter` and `Monitor.Exit` inside a `try/finally`",
+      "An `Interlocked.CompareExchange` spin loop",
+      "A `SemaphoreSlim` with one slot"
+    ],
+    answer: 1,
+    explain: [
+      "`lock` is syntax sugar. The compiler expands it to roughly this:",
+      { label: "C#", src: src`
+        bool lockTaken = false;
+        try
+        {
+            Monitor.Enter(obj, ref lockTaken);
+            // ... your code ...
+        }
+        finally
+        {
+            if (lockTaken) Monitor.Exit(obj);
+        }
+      ` },
+      "The `try/finally` guarantees the lock is released even if your code throws. That's the main reason to use `lock` instead of calling `Monitor` yourself.",
+      "Since .NET 9 / C# 13 there is also a dedicated `System.Threading.Lock` type. When you `lock` on an instance of it, the compiler uses its faster `EnterScope()` API instead of `Monitor`."
+    ],
+    tip: "Lock on a private readonly object you own (`private readonly object _sync = new();`). Never lock on `this`, a `Type` or a string literal, because other code could lock on the same object and cause a deadlock."
+  },
+  {
+    id: "mutex-thread-affinity", topic: "Threading & Locks",
+    q: "Thread A calls `mutex.WaitOne()`. Then thread B, which never acquired it, calls `mutex.ReleaseMutex()`. What happens?",
+    options: [
+      "The mutex is released normally",
+      "`ReleaseMutex()` throws `ApplicationException`, because only the owning thread can release a mutex",
+      "Thread B blocks until thread A releases it",
+      "Nothing happens; the call is silently ignored"
+    ],
+    answer: 1,
+    explain: [
+      "A mutex has **thread affinity**. The thread that acquires it becomes its owner, and only that thread may release it. Calling `ReleaseMutex()` from any other thread throws `ApplicationException` (\"Object synchronization method was called from an unsynchronized block of code\").",
+      "This is why a `Mutex` doesn't mix with `async`/`await`. Code after an `await` can resume on a different thread, which then isn't allowed to release the mutex. It's the same reason `lock` can't contain an `await`.",
+      "A mutex is also **reentrant**. The owning thread can call `WaitOne()` again without blocking itself, but it must then call `ReleaseMutex()` the same number of times.",
+      { label: "C#", src: src`
+        var mutex = new Mutex();
+        mutex.WaitOne();              // this thread now owns the mutex
+        await Task.Delay(100);        // may resume on another thread...
+        mutex.ReleaseMutex();         // ...and then this throws ApplicationException
+      ` }
+    ],
+    tip: "For mutual exclusion across `await` inside one process, use `SemaphoreSlim(1, 1)`. A semaphore has no owner, so any thread may release it."
+  },
+  {
+    id: "abandoned-mutex", topic: "Threading & Locks",
+    q: "Process A holds a named mutex and crashes without releasing it. Process B is blocked in `WaitOne()` on the same mutex. What happens to B?",
+    options: [
+      "B waits forever",
+      "B acquires the mutex, but `WaitOne()` throws `AbandonedMutexException` to warn that the previous owner died",
+      "B gets an `ObjectDisposedException`",
+      "The operating system restarts process A"
+    ],
+    answer: 1,
+    explain: [
+      "The OS tracks which thread owns a mutex, so it notices when that thread or its process ends without releasing it. The mutex is then marked **abandoned**, and the next waiter gets it, but `WaitOne()` throws `AbandonedMutexException` to tell that waiter something went wrong.",
+      "B really does own the mutex at that point, so it must still call `ReleaseMutex()` later. Treat the exception as a warning: whatever the mutex protected (a shared file, a memory-mapped region) may have been left half-written.",
+      { label: "C#", src: src`
+        try
+        {
+            mutex.WaitOne();
+        }
+        catch (AbandonedMutexException)
+        {
+            // We own the mutex now, but the previous owner crashed.
+            // Check or repair the shared resource before using it.
+        }
+
+        try
+        {
+            // use the shared resource
+        }
+        finally
+        {
+            mutex.ReleaseMutex();
+        }
+      ` }
+    ],
+    tip: "`lock` and `SemaphoreSlim` have no equivalent of this crash detection, which is another reason a mutex is the right tool between processes."
+  },
+  {
+    id: "race-condition", topic: "Threading & Locks",
+    q: "Two threads each run `counter++` 1,000,000 times on a shared `int` field, with no locking. What's the most likely final value?",
+    options: [
+      "Exactly 2,000,000",
+      "Usually less than 2,000,000, and different on each run",
+      "More than 2,000,000",
+      "It throws `InvalidOperationException`"
+    ],
+    answer: 1,
+    explain: [
+      "`counter++` looks like one operation but is really three: read the value, add 1, write it back. If both threads read the same value at the same moment, both write back value + 1, and one increment is lost. This is a **race condition**.",
+      "How many updates get lost depends on timing, so the result changes from run to run. That makes these bugs hard to reproduce.",
+      { label: "C#", src: src`
+        Interlocked.Increment(ref counter);    // atomic and lock-free: the best fix here
+
+        lock (_sync) { counter++; }            // also correct, a little slower
+      ` }
+    ],
+    tip: "`Interlocked` covers simple atomic operations (`Increment`, `Add`, `Exchange`, `CompareExchange`). When several fields must change together, use a `lock`."
+  },
+  {
+    id: "single-instance-mutex", topic: "Threading & Locks", type: "code", lang: "C#",
+    q: "Write the startup code for an app so that only **one instance** can run at a time. If a second copy is started, it should print a message and exit.",
+    solution: src`
+      internal static class Program
+      {
+          // A unique name. "Global\" makes it visible across all user sessions.
+          private const string MutexName = @"Global\MyCompany.MyApp.SingleInstance";
+
+          private static int Main()
+          {
+              using var mutex = new Mutex(initiallyOwned: true, MutexName, out bool createdNew);
+
+              if (!createdNew)
+              {
+                  Console.WriteLine("The app is already running.");
+                  return 1;
+              }
+
+              try
+              {
+                  RunApp();
+                  return 0;
+              }
+              finally
+              {
+                  mutex.ReleaseMutex();
+              }
+          }
+
+          private static void RunApp()
+          {
+              Console.WriteLine("Running. Press Enter to exit.");
+              Console.ReadLine();
+          }
+      }
+    `,
+    explain: [
+      "A **named** mutex is an operating-system object identified by its name. Every process that uses the same name gets the same mutex, which makes it the standard way to detect another running instance.",
+      "The constructor with `initiallyOwned: true` and `out bool createdNew` does the check atomically. The first process creates the mutex and owns it (`createdNew` is true). Any later process opens the existing mutex and gets `createdNew` as false, so it knows another instance is running and exits.",
+      "Two details matter. First, keep a reference to the mutex for the app's whole lifetime. The `using var` keeps it alive until `Main` returns; without it, the garbage collector could collect the mutex in a Release build, and a second instance could start. Second, if the first instance crashes, the OS cleans up, so the next start works normally.",
+      { label: "C# (alternative: test without blocking)", src: src`
+        using var mutex = new Mutex(initiallyOwned: false, MutexName);
+        bool acquired;
+        try
+        {
+            acquired = mutex.WaitOne(TimeSpan.Zero);   // test and return immediately
+        }
+        catch (AbandonedMutexException)
+        {
+            acquired = true;                           // previous instance crashed; we own it now
+        }
+
+        if (!acquired)
+        {
+            Console.WriteLine("The app is already running.");
+            return 1;
+        }
+      ` }
+    ],
+    tip: "Pick a truly unique name, for example including your company name or a GUID. If another program used the same name, it would stop yours from starting."
+  },
+  {
+    id: "thread-safe-singleton", topic: "Threading & Locks", type: "code", lang: "C#",
+    q: "Write a thread-safe, lazily created singleton class called `AppConfig`.",
+    solution: src`
+      public sealed class AppConfig
+      {
+          private static readonly Lazy<AppConfig> _instance =
+              new(() => new AppConfig());        // thread-safe by default
+
+          public static AppConfig Instance => _instance.Value;
+
+          private AppConfig()                    // private: nobody else can call new
+          {
+              // load settings...
+          }
+      }
+    `,
+    explain: [
+      "A singleton needs three things: a **private constructor** so no one else can create instances, a **static access point**, and a guarantee that only **one instance** is ever created, even if many threads ask at the same moment.",
+      "`Lazy<T>` handles the hard part. By default it uses `LazyThreadSafetyMode.ExecutionAndPublication`: the factory runs exactly once, on first access to `.Value`, and any other threads wait for that result. `sealed` stops subclasses from creating extra instances.",
+      { label: "C# (classic double-checked locking, what Lazy<T> does for you)", src: src`
+        public sealed class AppConfig
+        {
+            private static volatile AppConfig? _instance;
+            private static readonly object _sync = new();
+
+            public static AppConfig Instance
+            {
+                get
+                {
+                    if (_instance is null)                 // fast path: no lock once created
+                    {
+                        lock (_sync)
+                        {
+                            _instance ??= new AppConfig(); // check again inside the lock
+                        }
+                    }
+                    return _instance;
+                }
+            }
+
+            private AppConfig() { }
+        }
+      ` },
+      "The simplest correct version is `public static AppConfig Instance { get; } = new AppConfig();`. The runtime guarantees static initializers run once and thread-safely. It's just less precisely lazy: the instance is created when the class is first used."
+    ],
+    tip: "In ASP.NET Core you rarely write this by hand: register it with `builder.Services.AddSingleton<AppConfig>()` and let dependency injection manage the single instance. That is also much easier to test."
+  },
+  {
+    id: "odd-even-threads", topic: "Threading & Locks", type: "code", lang: "C#",
+    q: "Two threads print the numbers 1 to 10: one prints only odd numbers, the other only even numbers. Coordinate them so the output is always `1 2 3 4 5 6 7 8 9 10` in order.",
+    solution: src`
+      var oddTurn  = new SemaphoreSlim(1, 1);   // odd thread goes first
+      var evenTurn = new SemaphoreSlim(0, 1);   // even thread waits
+      const int Max = 10;
+
+      var odd = new Thread(() =>
+      {
+          for (int i = 1; i <= Max; i += 2)
+          {
+              oddTurn.Wait();                   // wait for my turn
+              Console.Write($"{i} ");
+              evenTurn.Release();               // hand the turn to the even thread
+          }
+      });
+
+      var even = new Thread(() =>
+      {
+          for (int i = 2; i <= Max; i += 2)
+          {
+              evenTurn.Wait();
+              Console.Write($"{i} ");
+              oddTurn.Release();
+          }
+      });
+
+      odd.Start(); even.Start();
+      odd.Join();  even.Join();
+    `,
+    explain: [
+      "Two threads run independently, so without coordination the order would be random. The fix is **turn-taking**: each thread waits for a signal, does one step, then signals the other thread.",
+      "A `SemaphoreSlim` works as that signal. `oddTurn` starts with 1 slot, so the odd thread can go immediately. `evenTurn` starts with 0, so the even thread blocks. After printing, each thread `Release`s the other thread's semaphore, like passing a baton back and forth.",
+      { label: "C# (same idea with Monitor.Wait / PulseAll)", src: src`
+        object sync = new();
+        int next = 1;
+
+        void PrintNumbers(bool odd)
+        {
+            while (true)
+            {
+                lock (sync)
+                {
+                    while (next <= 10 && (next % 2 == 1) != odd)
+                        Monitor.Wait(sync);           // not my turn: release the lock and sleep
+                    if (next > 10) { Monitor.PulseAll(sync); return; }
+
+                    Console.Write($"{next} ");
+                    next++;
+                    Monitor.PulseAll(sync);           // wake the other thread
+                }
+            }
+        }
+
+        var t1 = new Thread(() => PrintNumbers(odd: true));
+        var t2 = new Thread(() => PrintNumbers(odd: false));
+        t1.Start(); t2.Start();
+        t1.Join();  t2.Join();
+      ` },
+      "`Monitor.Wait` must be called inside a `lock`. It releases the lock while sleeping and takes it back before returning. Always wait inside a `while` loop that re-checks the condition, never an `if`, because a thread can wake up when it isn't actually its turn."
+    ],
+    tip: "Interviewers ask this to see whether you know a signaling primitive beyond `lock`. Mentioning both the semaphore and the `Monitor` approach is a strong answer."
+  },
+
+  /* =================== Runtime & Memory =================== */
   {
     id: "loh", topic: "Runtime & Memory",
     q: "By default, objects of at least what size are allocated on the Large Object Heap (LOH)?",
     options: ["1 KB", "8,192 bytes", "85,000 bytes", "1 MB"],
     answer: 2,
-    explain: "Objects of 85,000 bytes or more (typically big arrays) go to the LOH, which is collected with Gen 2 and isn't compacted by default. The threshold can be changed with `GCLOHThreshold`."
+    explain: [
+      "The .NET garbage collector is **generational**. New objects start in Gen 0, which is collected often and cheaply. Objects that survive are promoted to Gen 1 and then Gen 2, which are collected less often. Most objects die young, so this is efficient.",
+      "Objects of 85,000 bytes or more, typically large arrays, skip this and go straight to the **Large Object Heap**. The LOH is collected only together with Gen 2, and it isn't compacted by default because moving big blocks of memory is expensive. Allocating and dropping many large arrays can therefore cause frequent full collections and memory fragmentation.",
+      { label: "C#", src: src`
+        var small = new byte[80_000];   // normal heap, Gen 0
+        var large = new byte[85_000];   // Large Object Heap
+
+        // Reuse big buffers instead of allocating new ones
+        byte[] buffer = ArrayPool<byte>.Shared.Rent(1_000_000);
+        try
+        {
+            // use buffer...
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
+      ` }
+    ],
+    tip: "`ArrayPool<T>` exists exactly for this: renting large buffers instead of creating LOH garbage."
   },
   {
     id: "span", topic: "Runtime & Memory",
@@ -507,7 +1293,19 @@ const QUESTIONS = [
       "It's thread-safe by design"
     ],
     answer: 1,
-    explain: "`Span<T>` is a `ref struct` that must stay on the stack. It can view arrays, stack memory (`stackalloc`) or native memory without copying. Use `Memory<T>` when you need to store it on the heap."
+    explain: [
+      "`Span<T>` is a view over a contiguous block of memory: part of an array, a `stackalloc` buffer or native memory. Slicing it creates a new view without copying anything.",
+      "It's a `ref struct`, so it can **only live on the stack**. A span may point into the middle of an array or at stack memory, and the runtime can only keep that safe if the span never outlives what it points to. So it can't be a field of a class, can't be boxed, can't be captured by a lambda and can't be held across an `await`.",
+      { label: "C#", src: src`
+        string date = "2024-10-31";
+        ReadOnlySpan<char> span = date.AsSpan();
+        int year  = int.Parse(span[..4]);           // no substring allocated
+        int month = int.Parse(span.Slice(5, 2));
+
+        Span<byte> buffer = stackalloc byte[256];   // stack memory: no garbage collection at all
+      ` }
+    ],
+    tip: "When you need to store the view, or use it across an `await`, use `Memory<T>` or `ReadOnlyMemory<T>`, which can live on the heap."
   },
   {
     id: "suppressfinalize", topic: "Runtime & Memory",
@@ -519,7 +1317,34 @@ const QUESTIONS = [
       "To free the object's managed memory immediately"
     ],
     answer: 2,
-    explain: "Objects with finalizers survive an extra GC and sit in the finalization queue. Once `Dispose` has cleaned up, suppressing finalization skips that cost."
+    explain: [
+      "A **finalizer** (`~MyClass()`) is a safety net for unmanaged resources: the GC runs it if you forgot to call `Dispose`. But finalizers are expensive. An object with one survives its first collection, waits in a queue for the finalizer thread, and is only freed by a later collection.",
+      "If `Dispose()` has already released the resources, the finalizer has nothing left to do. `GC.SuppressFinalize(this)` takes the object off the finalization queue, so it's freed in the normal, cheap way.",
+      { label: "C#", src: src`
+        public class NativeBuffer : IDisposable
+        {
+            private IntPtr _handle = Marshal.AllocHGlobal(1024);
+            private bool _disposed;
+
+            public void Dispose()
+            {
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);          // cleanup done: skip the finalizer
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (_disposed) return;
+                if (disposing) { /* dispose other managed IDisposables here */ }
+                Marshal.FreeHGlobal(_handle);       // always free unmanaged memory
+                _disposed = true;
+            }
+
+            ~NativeBuffer() => Dispose(disposing: false);   // safety net if Dispose is forgotten
+        }
+      ` }
+    ],
+    tip: "Most classes don't need a finalizer at all. If you only hold other `IDisposable` objects, just implement `Dispose()`. For OS handles, use `SafeHandle`, which already has a finalizer."
   },
   {
     id: "il", topic: "Runtime & Memory",
@@ -531,16 +1356,30 @@ const QUESTIONS = [
       "JavaScript"
     ],
     answer: 1,
-    explain: "Roslyn emits IL and metadata. The CLR's JIT (RyuJIT) compiles methods to native code when they're first called. Native AOT instead compiles everything to native code ahead of time."
+    explain: [
+      "C# is compiled in two stages. First the C# compiler (Roslyn) turns your code into **IL** (Intermediate Language), a CPU-independent instruction set, plus **metadata** describing every type and member. That's what's inside the `.dll`.",
+      "When the app runs, the runtime's **JIT compiler** translates each method's IL into machine code for the actual CPU the first time that method is called. Modern .NET uses tiered compilation: it compiles quickly first, then recompiles frequently used methods with more optimizations.",
+      "**Native AOT** (`<PublishAot>true</PublishAot>`) skips the JIT and compiles everything to machine code at publish time. That gives fast startup and low memory use, but restricts runtime code generation and some reflection."
+    ],
+    tip: "Because IL is CPU-independent, the same `.dll` runs on x64 and ARM64, on Windows, Linux and macOS. Tools like ILSpy or sharplab.io show the IL for your code."
   },
 
-  // ---------- ASP.NET Core ----------
+  /* =================== ASP.NET Core =================== */
   {
     id: "di-scoped", topic: "ASP.NET Core",
     q: "Which DI lifetime gives you one instance per HTTP request in ASP.NET Core?",
     options: ["Transient", "Scoped", "Singleton", "PerThread"],
     answer: 1,
-    explain: "ASP.NET Core creates a DI scope for each request. Scoped services are shared within that request. Transient services are new on every resolve; singletons live for the whole app."
+    explain: [
+      "ASP.NET Core's built-in dependency injection container supports three lifetimes:",
+      { label: "Program.cs", src: src`
+        builder.Services.AddTransient<IEmailBuilder, EmailBuilder>(); // new instance every time it's requested
+        builder.Services.AddScoped<AppDbContext>();                   // one per scope = one per HTTP request
+        builder.Services.AddSingleton<ICache, MemoryCache>();         // one for the app's whole lifetime
+      ` },
+      "ASP.NET Core creates a new scope for each request. Within that request, every class asking for a scoped service gets the same instance; the next request gets a fresh one. That's why `DbContext` is scoped: all repositories in one request share one unit of work, but requests never share state."
+    ],
+    tip: "Choose by state. Per-request state (DbContext, current-user info) → scoped. Shared, thread-safe state (caches, configuration) → singleton. Lightweight and stateless → transient."
   },
   {
     id: "captive", topic: "ASP.NET Core",
@@ -552,14 +1391,46 @@ const QUESTIONS = [
       "A new scoped instance is created on every method call"
     ],
     answer: 1,
-    explain: "A longer-lived service must not hold shorter-lived ones. To use scoped services from a singleton, inject `IServiceScopeFactory` and create a scope when needed."
+    explain: [
+      "A singleton is created once and kept forever. If it receives a scoped service in its constructor, that scoped instance is trapped inside it and lives forever too. Every request would then share one `DbContext`, which isn't thread-safe and keeps tracking entities indefinitely. This bug is called a **captive dependency**.",
+      "To catch it early, ASP.NET Core validates scopes in the Development environment. Resolving such a singleton throws `InvalidOperationException: Cannot consume scoped service ... from singleton ...`.",
+      { label: "C# (the fix: create a scope when you need one)", src: src`
+        public class ReportScheduler                  // registered as a singleton
+        {
+            private readonly IServiceScopeFactory _scopes;
+            public ReportScheduler(IServiceScopeFactory scopes) => _scopes = scopes;
+
+            public async Task RunAsync()
+            {
+                using var scope = _scopes.CreateScope();          // short-lived scope
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                // use db...
+            }                                                     // db is disposed here
+        }
+      ` }
+    ],
+    tip: "A service may only depend on services that live at least as long as it does. A singleton may depend only on singletons; scoped services on scoped or singleton; transient services on anything."
   },
   {
     id: "middleware-order", topic: "ASP.NET Core",
     q: "Which middleware must come BEFORE `app.UseAuthorization()` so the user's identity is known when authorization runs?",
     options: ["`app.UseResponseCompression()`", "`app.UseAuthentication()`", "`app.UseHsts()`", "`app.UseOutputCache()`"],
     answer: 1,
-    explain: "Middleware runs in registration order. Authentication populates `HttpContext.User`, and authorization then decides whether that user may proceed. Reversing them means every request looks anonymous."
+    explain: [
+      "Middleware forms a pipeline. Each component runs in the order you register it and can do work both before and after calling the next one.",
+      "`UseAuthentication()` reads the cookie or token, validates it and sets `HttpContext.User`. `UseAuthorization()` then checks that user against `[Authorize]` policies. If authorization ran first, every user would still look anonymous and get rejected.",
+      { label: "Program.cs (a typical order)", src: src`
+        app.UseExceptionHandler("/error");   // first: catches errors from everything below
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();                // serves files early, skipping the rest
+        app.UseRouting();
+        app.UseCors();
+        app.UseAuthentication();             // who are you?
+        app.UseAuthorization();              // are you allowed?
+        app.MapControllers();
+      ` }
+    ],
+    tip: "Remember the order as \"who are you?\" before \"are you allowed?\"."
   },
   {
     id: "httpclientfactory", topic: "ASP.NET Core",
@@ -571,24 +1442,77 @@ const QUESTIONS = [
       "It makes requests synchronous and simpler"
     ],
     answer: 1,
-    explain: "Creating and disposing `HttpClient`s rapidly leaves sockets in TIME_WAIT. Keeping one forever never picks up DNS changes. The factory manages handler lifetimes for you (as does a singleton client with `PooledConnectionLifetime`)."
+    explain: [
+      "`HttpClient` is meant to be reused. Each instance owns a handler with its own connection pool. Creating and disposing a client per request throws those connections away, and the closed sockets linger in the TIME_WAIT state for a while. Under load you can run out of sockets: **socket exhaustion**.",
+      "But a single `HttpClient` that lives forever has the opposite problem. Its connections stay open and never look up DNS again, so it won't notice when a service moves to a new IP address.",
+      "`IHttpClientFactory` solves both. It pools the handlers and recycles them periodically (every 2 minutes by default), while the `HttpClient` objects it hands out are cheap to create per use.",
+      { label: "C#", src: src`
+        builder.Services.AddHttpClient<GitHubClient>(c =>
+        {
+            c.BaseAddress = new Uri("https://api.github.com/");
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("my-app");
+        });
+
+        public class GitHubClient(HttpClient http)       // "typed client", injected by the factory
+        {
+            public Task<string> GetUserAsync(string name) => http.GetStringAsync($"users/{name}");
+        }
+      ` }
+    ],
+    tip: "Outside dependency injection, one static `HttpClient` created with `new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(2) }` is also correct."
   },
   {
     id: "options-snapshot", topic: "ASP.NET Core",
     q: "Which options interface should NOT be injected into a Singleton service?",
     options: ["`IOptions<T>`", "`IOptionsMonitor<T>`", "`IOptionsSnapshot<T>`", "All of them are fine"],
     answer: 2,
-    explain: "`IOptionsSnapshot<T>` is registered as Scoped (it's recomputed per request), so it can't go into a singleton. `IOptions<T>` and `IOptionsMonitor<T>` are singletons; use `IOptionsMonitor<T>` for live reloads."
+    explain: [
+      "The options pattern binds configuration sections (like `appsettings.json`) to classes. There are three ways to read them:",
+      { label: "Options interfaces", src: src`
+        IOptions<T>          Singleton   read once at startup; never sees config changes
+        IOptionsSnapshot<T>  Scoped      re-read once per request; sees changes on the next request
+        IOptionsMonitor<T>   Singleton   always the current value, plus an OnChange callback
+      ` },
+      "Because `IOptionsSnapshot<T>` is scoped, injecting it into a singleton is a captive dependency, and ASP.NET Core rejects it. In a singleton, use `IOptionsMonitor<T>` and read `.CurrentValue` each time you need the value.",
+      { label: "C#", src: src`
+        public class EmailSender(IOptionsMonitor<SmtpSettings> options)   // singleton
+        {
+            public void Send(string to)
+            {
+                var host = options.CurrentValue.Host;   // always the latest value
+                // ...
+            }
+        }
+      ` }
+    ],
+    tip: "`IOptions<T>` for values that never change at run time, `IOptionsSnapshot<T>` in per-request code, and `IOptionsMonitor<T>` in singletons that must see updates."
   },
   {
     id: "minimal-binding", topic: "ASP.NET Core",
     q: "In this Minimal API, where does the `name` parameter come from?",
-    code: [
-      'app.MapGet("/hello/{name}", (string name) => $"Hello {name}");'
-    ],
+    given: src`
+      app.MapGet("/hello/{name}", (string name) => $"Hello {name}");
+    `,
     options: ["The query string", "The request body (JSON)", "The route value `{name}`", "A request header"],
     answer: 2,
-    explain: "Minimal APIs bind a parameter from the route when its name matches a route-template segment. Otherwise simple types fall back to the query string. Use `[FromQuery]`, `[FromHeader]` and so on to be explicit."
+    explain: [
+      "Minimal APIs infer where each parameter comes from:",
+      { label: "Binding rules", src: src`
+        Route value     the parameter name matches a {segment} in the route template
+        Query string    simple types (string, int, ...) that aren't in the route
+        Body (JSON)     complex types, for POST/PUT
+        Services        types registered in dependency injection (e.g. AppDbContext)
+        Special types   HttpContext, CancellationToken, ClaimsPrincipal, ...
+      ` },
+      "`name` matches `{name}` in `/hello/{name}`, so a request to `/hello/Ada` returns `Hello Ada`.",
+      { label: "C#", src: src`
+        app.MapGet("/search", (string q, int page = 1) => ...);              // /search?q=net&page=2
+        app.MapPost("/users", (CreateUserDto dto, AppDbContext db) => ...);  // JSON body + DI service
+        app.MapGet("/items/{id:int}",
+            ([FromRoute] int id, [FromHeader(Name = "X-Tenant")] string tenant) => ...);
+      ` }
+    ],
+    tip: "When the inference isn't obvious, be explicit with `[FromRoute]`, `[FromQuery]`, `[FromBody]`, `[FromHeader]` or `[FromServices]`."
   },
   {
     id: "no-synccontext", topic: "ASP.NET Core",
@@ -600,10 +1524,70 @@ const QUESTIONS = [
       "`.Result` is automatically converted to `await`"
     ],
     answer: 1,
-    explain: "Without a `SynchronizationContext`, continuations run on the thread pool. Blocking is still bad practice, though: it wastes threads and can cause thread-pool starvation under load."
+    explain: [
+      "Classic ASP.NET (like WPF and WinForms) has a **SynchronizationContext** that lets only one thread at a time run code for a request. When you call `.Result`, the request thread blocks while waiting for the task. When the task's work finishes, the rest of the async method needs that same context to continue, but the context is busy blocking. Neither side can move: a **deadlock**.",
+      "ASP.NET Core has no SynchronizationContext. Continuations simply run on any thread-pool thread, so the task can complete while the original thread waits.",
+      "Blocking is still harmful. Each blocked request holds a thread-pool thread that does nothing. Under load the pool runs out of threads (**thread-pool starvation**), and the whole app slows to a crawl.",
+      { label: "C#", src: src`
+        // Avoid: blocks a thread for the whole wait
+        var data = GetDataAsync().Result;
+
+        // Prefer: frees the thread while waiting
+        var data = await GetDataAsync();
+      ` }
+    ],
+    tip: "Follow \"async all the way\": once you call an async method, make its caller async too, all the way up to the controller or endpoint."
+  },
+  {
+    id: "timing-middleware", topic: "ASP.NET Core", type: "code", lang: "C#",
+    q: "Write ASP.NET Core middleware that measures how long each request takes and adds it to the response as a header called `X-Elapsed-Ms`.",
+    solution: src`
+      app.Use(async (context, next) =>
+      {
+          var stopwatch = Stopwatch.StartNew();
+
+          // Headers must be set before the response starts streaming,
+          // so register a callback that runs right before that moment.
+          context.Response.OnStarting(() =>
+          {
+              context.Response.Headers["X-Elapsed-Ms"] =
+                  stopwatch.ElapsedMilliseconds.ToString();
+              return Task.CompletedTask;
+          });
+
+          await next(context);
+      });
+    `,
+    explain: [
+      "Middleware is a function that receives the `HttpContext` and a `next` delegate. Code before `await next(context)` runs on the way in; code after it runs on the way out, once everything later in the pipeline has finished.",
+      "The tricky part is the header. As soon as the response body starts streaming to the client, the headers have been sent, and setting one throws `InvalidOperationException`. So you can't simply set it after `next()`. `Response.OnStarting` registers a callback that runs just before the headers go out, which is the last moment you can add one.",
+      { label: "C# (class-based version that logs instead)", src: src`
+        public class TimingMiddleware(RequestDelegate next, ILogger<TimingMiddleware> logger)
+        {
+            public async Task InvokeAsync(HttpContext context)
+            {
+                var stopwatch = Stopwatch.StartNew();
+                try
+                {
+                    await next(context);
+                }
+                finally
+                {
+                    logger.LogInformation("{Method} {Path} took {Elapsed} ms",
+                        context.Request.Method, context.Request.Path, stopwatch.ElapsedMilliseconds);
+                }
+            }
+        }
+
+        // Program.cs: register it early so it times everything after it
+        app.UseMiddleware<TimingMiddleware>();
+      ` },
+      "If you only need logging, the class version is simpler. Measure around `next` and log in `finally`, so failed requests are logged too."
+    ],
+    tip: "Middleware classes are created once for the app's lifetime. Inject scoped services (like a `DbContext`) as parameters of `InvokeAsync`, not in the constructor."
   },
 
-  // ---------- EF Core ----------
+  /* =================== EF Core =================== */
   {
     id: "asnotracking", topic: "EF Core",
     q: "What does `.AsNoTracking()` do on an EF Core query?",
@@ -614,7 +1598,22 @@ const QUESTIONS = [
       "Skips lazy loading only"
     ],
     answer: 1,
-    explain: "Tracking costs memory and CPU because EF snapshots each entity to detect changes. For read-only scenarios, no-tracking queries are faster and lighter."
+    explain: [
+      "By default, EF Core **tracks** every entity a query returns. It keeps a snapshot of the original values so that `SaveChanges()` can detect what you changed and generate UPDATE statements. It also makes sure the same database row always maps to the same object.",
+      "For read-only queries (lists, reports, API GET endpoints) that's wasted work. `AsNoTracking()` skips the snapshots, so the query is faster and uses less memory. The trade-off: if you change those objects and call `SaveChanges()`, nothing is saved, because EF doesn't know about them.",
+      { label: "C#", src: src`
+        // Read-only: no tracking needed
+        var products = await db.Products.AsNoTracking()
+                               .Where(p => p.IsActive)
+                               .ToListAsync();
+
+        // Update: tracking needed so EF can detect the change
+        var product = await db.Products.FirstAsync(p => p.Id == id);
+        product.Price = 9.99m;
+        await db.SaveChangesAsync();      // EF sees the change and sends an UPDATE
+      ` }
+    ],
+    tip: "If most of your queries are read-only, turn tracking off globally with `UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking)` and opt back in with `AsTracking()` where needed."
   },
   {
     id: "n-plus-one", topic: "EF Core",
@@ -626,7 +1625,24 @@ const QUESTIONS = [
       "It throws because navigation properties can't be read in a loop"
     ],
     answer: 1,
-    explain: "Each lazy-loaded navigation triggers its own round-trip. Eager loading with `Include` (optionally `AsSplitQuery()`) or projecting with `Select` fetches the data in one or a few queries."
+    explain: [
+      "With lazy loading, a navigation property like `blog.Posts` is loaded the first time you access it, with its own query. The loop sends 1 query for the blogs plus 1 per blog: 101 round trips. This is the **N+1 problem**. Each query is fast, but the latency adds up.",
+      { label: "C#", src: src`
+        // N+1: 1 + 100 queries
+        var blogs = db.Blogs.ToList();
+        foreach (var b in blogs) Console.WriteLine(b.Posts.Count);
+
+        // Eager loading: 1 query with a JOIN
+        var blogs = db.Blogs.Include(b => b.Posts).ToList();
+
+        // Projection: 1 query that fetches only what you need
+        var stats = db.Blogs
+            .Select(b => new { b.Name, PostCount = b.Posts.Count })
+            .ToList();
+      ` },
+      "If `Include` pulls in several large collections, the JOIN can repeat a lot of data (a \"cartesian explosion\"). `AsSplitQuery()` loads each collection in its own query instead. That's still a fixed number of queries, not N+1."
+    ],
+    tip: "Turn on SQL logging during development (`optionsBuilder.LogTo(Console.WriteLine)`). An N+1 problem is obvious as soon as you see the queries."
   },
   {
     id: "savechanges-tx", topic: "EF Core",
@@ -638,13 +1654,377 @@ const QUESTIONS = [
       "It uses one transaction per entity"
     ],
     answer: 1,
-    explain: "By default `SaveChanges` is atomic for providers that support transactions. Use `Database.BeginTransaction()` explicitly when you need to span multiple `SaveChanges` calls."
+    explain: [
+      "When you call `SaveChanges()`, EF Core works out every INSERT, UPDATE and DELETE needed for the tracked changes. On a relational database it runs them all inside **one transaction**. If any statement fails, the transaction is rolled back, nothing is saved and an exception is thrown. It's all-or-nothing.",
+      "If several `SaveChanges()` calls, or EF plus raw SQL, must succeed or fail together, start a transaction yourself:",
+      { label: "C#", src: src`
+        await using var tx = await db.Database.BeginTransactionAsync();
+
+        db.Orders.Add(order);
+        await db.SaveChangesAsync();                  // order gets its generated Id
+
+        db.Invoices.Add(new Invoice { OrderId = order.Id });
+        await db.SaveChangesAsync();
+
+        await tx.CommitAsync();   // both saved; disposing without Commit rolls everything back
+      ` }
+    ],
+    tip: "Keep transactions short. Don't wait for user input or slow HTTP calls while one is open, because it holds locks in the database."
+  },
+
+  /* =================== SQL =================== */
+  {
+    id: "where-vs-having", topic: "SQL", lang: "SQL",
+    q: "What is the difference between `WHERE` and `HAVING`?",
+    options: [
+      "`WHERE` filters rows before grouping; `HAVING` filters groups after `GROUP BY`",
+      "They're interchangeable",
+      "`HAVING` is always faster than `WHERE`",
+      "`WHERE` can only be used together with `JOIN`"
+    ],
+    answer: 0,
+    explain: [
+      "SQL evaluates the clauses of a query in a logical order that differs from the order you write them:",
+      { label: "Logical order", src: src`
+        FROM / JOIN  ->  WHERE  ->  GROUP BY  ->  HAVING  ->  SELECT  ->  ORDER BY
+      ` },
+      "`WHERE` runs before grouping, so it filters individual rows and can't use aggregates like `COUNT(*)`. `HAVING` runs after grouping, so it filters whole groups and can use aggregates.",
+      { label: "SQL", src: src`
+        SELECT CustomerId, COUNT(*) AS OrderCount
+        FROM Orders
+        WHERE OrderDate >= '2024-01-01'   -- rows: only orders from 2024 on
+        GROUP BY CustomerId
+        HAVING COUNT(*) > 5;              -- groups: customers with more than 5 of them
+      ` },
+      "The same order explains why you can't use a `SELECT` alias like `OrderCount` in `WHERE`: `SELECT` hasn't run yet at that point."
+    ],
+    tip: "Filter in `WHERE` whenever you can. Removing rows before grouping means less work for the database."
+  },
+  {
+    id: "null-compare", topic: "SQL", lang: "SQL",
+    q: "What does this query return?",
+    given: src`
+      SELECT * FROM Users WHERE MiddleName = NULL;
+    `,
+    options: ["All users without a middle name", "No rows", "A syntax error", "All rows"],
+    answer: 1,
+    explain: [
+      "In SQL, `NULL` means \"unknown\". Comparing anything with unknown gives **UNKNOWN**, not true or false, and that includes `NULL = NULL`. `WHERE` keeps only rows where the condition is TRUE, so this query returns nothing.",
+      { label: "SQL", src: src`
+        SELECT * FROM Users WHERE MiddleName IS NULL;          -- correct
+        SELECT * FROM Users WHERE MiddleName IS NOT NULL;
+        SELECT Name, COALESCE(MiddleName, '') FROM Users;      -- replace NULL with a default
+      ` },
+      "The same rule causes a classic `NOT IN` trap. If the subquery returns even one NULL, `x NOT IN (...)` can never be true, and the query returns no rows. `NOT EXISTS` doesn't have this problem."
+    ],
+    tip: "This assumes SQL Server's default `ANSI_NULLS ON` setting, which you should always keep. Use `IS NULL` and `IS NOT NULL` for null checks."
+  },
+  {
+    id: "left-join-count", topic: "SQL", lang: "SQL",
+    q: "`Customers` has 5 rows. 3 of those customers have exactly 2 orders each in `Orders`; the other 2 have none. How many rows does this return?",
+    given: src`
+      SELECT c.Name, o.Id
+      FROM Customers c
+      LEFT JOIN Orders o ON o.CustomerId = c.Id;
+    `,
+    options: ["5", "6", "8", "10"],
+    answer: 2,
+    explain: [
+      "An **INNER JOIN** returns only matching pairs: 3 customers × 2 orders each = 6 rows.",
+      "A **LEFT JOIN** returns everything the inner join returns, **plus** one row for each left-side row with no match, with the right side's columns set to NULL. That adds the 2 customers without orders: 6 + 2 = 8.",
+      { label: "Result", src: src`
+        Name   Id
+        Ann    101
+        Ann    102
+        Bob    103
+        Bob    104
+        Cy     105
+        Cy     106
+        Dee    NULL    <- no orders
+        Eve    NULL    <- no orders
+      ` }
+    ],
+    tip: "A LEFT JOIN never returns fewer rows than the left table has, but it returns more whenever one left row matches several right rows."
+  },
+  {
+    id: "rank-functions", topic: "SQL", lang: "SQL",
+    q: "For the scores 100, 90, 90, 80, what does `DENSE_RANK() OVER (ORDER BY Score DESC)` produce?",
+    options: ["1, 2, 3, 4", "1, 2, 2, 4", "1, 2, 2, 3", "1, 1, 2, 3"],
+    answer: 2,
+    explain: [
+      "The three ranking functions differ only in how they handle ties:",
+      { label: "Comparison", src: src`
+        Score   ROW_NUMBER   RANK   DENSE_RANK
+        100     1            1      1
+        90      2            2      2
+        90      3            2      2
+        80      4            4      3
+      ` },
+      "`ROW_NUMBER` always gives unique numbers and breaks ties arbitrarily. `RANK` gives ties the same number, then **skips** ahead, like sports standings (two silver medals, no bronze). `DENSE_RANK` gives ties the same number **without gaps**."
+    ],
+    tip: "For \"the Nth highest distinct value\", use `DENSE_RANK`. For \"exactly one row per group\", use `ROW_NUMBER`. For \"everyone who ties for first\", use `RANK`."
+  },
+  {
+    id: "clustered-index", topic: "SQL", lang: "SQL",
+    q: "What is a clustered index in SQL Server?",
+    options: [
+      "An index that defines the order in which the table's rows are stored; a table can have only one",
+      "An index stored in a separate file from the table",
+      "An index that spans several tables",
+      "Any index with more than one column"
+    ],
+    answer: 0,
+    explain: [
+      "A **clustered index** is the table itself, stored as a B-tree sorted by the index key, with the full rows at the leaf level. Rows can only be sorted one way, so a table has at most one clustered index. By default the primary key becomes the clustered index.",
+      "A **non-clustered index** is a separate B-tree of key values, where each entry points back to its row. A table can have many. If a query needs columns the index doesn't contain, SQL Server performs an extra **key lookup** into the clustered index for every matching row.",
+      { label: "SQL", src: src`
+        CREATE NONCLUSTERED INDEX IX_Orders_CustomerId
+        ON Orders (CustomerId)
+        INCLUDE (OrderDate, Total);   -- "covering" index: the query below needs no key lookups
+
+        SELECT OrderDate, Total FROM Orders WHERE CustomerId = 42;
+      ` }
+    ],
+    tip: "Good clustered keys are narrow, unique and ever-increasing, like an `INT IDENTITY`. A random `GUID` key causes page splits and fragmentation."
+  },
+  {
+    id: "sql-injection", topic: "SQL", lang: "SQL",
+    q: "From .NET (ADO.NET, Dapper or EF Core), what is the safe way to use user input in a SQL query?",
+    options: [
+      "Concatenate it into the SQL string after replacing `'` with `''`",
+      "Use parameters such as `@name` and send the value separately",
+      "Wrap the value in square brackets",
+      "Use `string.Format` instead of `+`"
+    ],
+    answer: 1,
+    explain: [
+      "Concatenating input into SQL lets the input change the structure of the query. If `name` is `x' OR 1=1 --`, the query becomes `WHERE Name = 'x' OR 1=1 --'` and returns every row. That's **SQL injection**, and escaping quotes yourself is easy to get wrong.",
+      "With parameters, the SQL text and the values travel to the database separately. The value is always treated as data, never as SQL, whatever it contains. As a bonus, the database can reuse the cached execution plan.",
+      { label: "C#", src: src`
+        // ADO.NET
+        using var cmd = new SqlCommand("SELECT * FROM Users WHERE Name = @name", conn);
+        cmd.Parameters.Add("@name", SqlDbType.NVarChar, 100).Value = name;
+
+        // Dapper
+        var users = conn.Query<User>("SELECT * FROM Users WHERE Name = @name", new { name });
+
+        // EF Core: interpolated values become parameters automatically
+        var users2 = db.Users.FromSql($"SELECT * FROM Users WHERE Name = {name}").ToList();
+      ` }
+    ],
+    tip: "Be careful with EF Core's `FromSqlRaw`: it does not protect you if you build the string by concatenation. Prefer `FromSql` with an interpolated string."
+  },
+  {
+    id: "sql-second-highest", topic: "SQL", type: "code", lang: "SQL",
+    q: "Write a query that returns the **second-highest distinct salary** from `Employees`. It should return NULL if there is no second salary.",
+    given: src`
+      Employees
+      ---------
+      Id      INT PRIMARY KEY
+      Name    NVARCHAR(100)
+      Salary  DECIMAL(10, 2)
+    `,
+    givenLabel: "Schema",
+    solution: src`
+      -- Option 1: subquery (works in every SQL database)
+      SELECT MAX(Salary) AS SecondHighest
+      FROM Employees
+      WHERE Salary < (SELECT MAX(Salary) FROM Employees);
+
+      -- Option 2: DENSE_RANK (easy to change to the Nth highest)
+      SELECT MAX(Salary) AS SecondHighest
+      FROM (
+          SELECT Salary,
+                 DENSE_RANK() OVER (ORDER BY Salary DESC) AS rnk
+          FROM Employees
+      ) AS ranked
+      WHERE rnk = 2;
+    `,
+    explain: [
+      "**Option 1** finds the top salary, then the largest salary below it. Comparing with `<` skips any duplicates of the top salary automatically. `MAX` over zero rows returns NULL, which covers the \"no second salary\" case.",
+      "**Option 2** ranks salaries with `DENSE_RANK`, which gives equal salaries the same rank with no gaps, so `rnk = 2` is always the second distinct value. Change `2` to any N for the Nth highest. The outer `MAX` turns \"no rows\" into a NULL result.",
+      { label: "SQL (another common answer, with a catch)", src: src`
+        SELECT DISTINCT Salary
+        FROM Employees
+        ORDER BY Salary DESC
+        OFFSET 1 ROWS FETCH NEXT 1 ROWS ONLY;
+      ` },
+      "The `OFFSET` version reads well, but it returns an **empty result** instead of NULL when there's no second salary, and it needs `DISTINCT` to handle ties."
+    ],
+    tip: "Expect the follow-ups \"now the Nth highest\" and \"now per department\". The `DENSE_RANK` version handles both; for the second, add `PARTITION BY DepartmentId`."
+  },
+  {
+    id: "sql-top-per-group", topic: "SQL", type: "code", lang: "SQL",
+    q: "For each department, return the employee(s) with the highest salary. Show the department name, employee name and salary.",
+    given: src`
+      Departments                 Employees
+      -----------                 ---------
+      Id    INT PRIMARY KEY       Id            INT PRIMARY KEY
+      Name  NVARCHAR(100)         Name          NVARCHAR(100)
+                                  Salary        DECIMAL(10, 2)
+                                  DepartmentId  INT  -> Departments.Id
+    `,
+    givenLabel: "Schema",
+    solution: src`
+      WITH ranked AS (
+          SELECT e.Name,
+                 e.Salary,
+                 e.DepartmentId,
+                 RANK() OVER (PARTITION BY e.DepartmentId
+                              ORDER BY e.Salary DESC) AS rnk
+          FROM Employees e
+      )
+      SELECT d.Name AS Department,
+             r.Name AS Employee,
+             r.Salary
+      FROM ranked r
+      JOIN Departments d ON d.Id = r.DepartmentId
+      WHERE r.rnk = 1
+      ORDER BY d.Name;
+    `,
+    explain: [
+      "This is the classic **top-N-per-group** problem, and window functions are the cleanest answer. `PARTITION BY DepartmentId` restarts the ranking for each department, and `ORDER BY Salary DESC` gives the highest earner rank 1.",
+      "`RANK` is used instead of `ROW_NUMBER` so that if two people tie for the top salary, both are returned. `ROW_NUMBER` would return exactly one per department and break ties arbitrarily. For the top 3 per department, change the filter to `rnk <= 3`.",
+      "The CTE (`WITH ranked AS ...`) is needed because you can't use a window function directly in `WHERE`. Window functions are evaluated in the `SELECT` step, which comes after `WHERE`.",
+      { label: "SQL (without window functions)", src: src`
+        SELECT d.Name AS Department, e.Name AS Employee, e.Salary
+        FROM Employees e
+        JOIN Departments d ON d.Id = e.DepartmentId
+        JOIN (
+            SELECT DepartmentId, MAX(Salary) AS MaxSalary
+            FROM Employees
+            GROUP BY DepartmentId
+        ) m ON m.DepartmentId = e.DepartmentId
+           AND m.MaxSalary = e.Salary;
+      ` }
+    ],
+    tip: "Whenever you hear \"for each X, the top, latest or first Y\", think `ROW_NUMBER()` or `RANK()` with `PARTITION BY X`."
+  },
+  {
+    id: "sql-duplicates", topic: "SQL", type: "code", lang: "SQL",
+    q: "The `Users` table contains duplicate emails. (a) Write a query that lists each duplicated email and how many times it appears. (b) Write a statement that deletes the duplicates, keeping the row with the lowest `Id` for each email.",
+    given: src`
+      Users
+      -----
+      Id         INT PRIMARY KEY
+      Email      NVARCHAR(200)
+      CreatedAt  DATETIME2
+    `,
+    givenLabel: "Schema",
+    solution: src`
+      -- (a) Find the duplicates
+      SELECT Email, COUNT(*) AS Occurrences
+      FROM Users
+      GROUP BY Email
+      HAVING COUNT(*) > 1;
+
+      -- (b) Delete duplicates, keeping the lowest Id per email (SQL Server)
+      WITH numbered AS (
+          SELECT Id,
+                 ROW_NUMBER() OVER (PARTITION BY Email ORDER BY Id) AS rn
+          FROM Users
+      )
+      DELETE FROM numbered
+      WHERE rn > 1;
+    `,
+    explain: [
+      "**(a)** groups the rows by email and keeps only the groups with more than one row. This is a textbook use of `HAVING`, because the filter needs an aggregate.",
+      "**(b)** numbers the rows inside each email group, ordered by `Id`. The row to keep gets `rn = 1`, and every extra copy gets 2, 3 and so on. In SQL Server you can delete through a CTE that reads from a single table, so `DELETE ... WHERE rn > 1` removes exactly the extra copies.",
+      { label: "SQL (version without window functions)", src: src`
+        DELETE FROM Users
+        WHERE Id NOT IN (
+            SELECT MIN(Id) FROM Users GROUP BY Email
+        );
+      ` },
+      "After cleaning up, add a unique index so duplicates can't come back: `CREATE UNIQUE INDEX UX_Users_Email ON Users (Email);`"
+    ],
+    tip: "Before running a DELETE, run the same query as a SELECT to check which rows will go, or run it inside a transaction you can roll back."
+  },
+  {
+    id: "sql-anti-join", topic: "SQL", type: "code", lang: "SQL",
+    q: "List all customers who have **never** placed an order.",
+    given: src`
+      Customers                   Orders
+      ---------                   ------
+      Id    INT PRIMARY KEY       Id          INT PRIMARY KEY
+      Name  NVARCHAR(100)         CustomerId  INT  -> Customers.Id
+                                  Total       DECIMAL(10, 2)
+    `,
+    givenLabel: "Schema",
+    solution: src`
+      -- NOT EXISTS (usually the best choice)
+      SELECT c.Id, c.Name
+      FROM Customers c
+      WHERE NOT EXISTS (
+          SELECT 1 FROM Orders o WHERE o.CustomerId = c.Id
+      );
+
+      -- LEFT JOIN + IS NULL (equally correct)
+      SELECT c.Id, c.Name
+      FROM Customers c
+      LEFT JOIN Orders o ON o.CustomerId = c.Id
+      WHERE o.Id IS NULL;
+    `,
+    explain: [
+      "This pattern is called an **anti-join**: rows in one table with no match in another. `NOT EXISTS` reads exactly like the question (\"customers for whom no order exists\"), stops searching at the first match, and handles NULLs correctly.",
+      "The `LEFT JOIN` version keeps every customer, fills the order columns with NULL where there's no match, then keeps only those rows. Test a column that can never be NULL in a real match, such as `o.Id`.",
+      "Avoid `WHERE c.Id NOT IN (SELECT CustomerId FROM Orders)`. If any `CustomerId` in `Orders` is NULL, `NOT IN` returns no rows at all."
+    ],
+    tip: "In EF Core, the same query is `db.Customers.Where(c => !c.Orders.Any())`, which EF translates to `NOT EXISTS`."
+  },
+  {
+    id: "sql-running-total", topic: "SQL", type: "code", lang: "SQL",
+    q: "Write a query that shows total sales per month for 2024, plus a **running total** since January.",
+    given: src`
+      Orders
+      ------
+      Id         INT PRIMARY KEY
+      OrderDate  DATETIME2
+      Total      DECIMAL(10, 2)
+    `,
+    givenLabel: "Schema",
+    solution: src`
+      WITH monthly AS (
+          SELECT DATEFROMPARTS(YEAR(OrderDate), MONTH(OrderDate), 1) AS Month,
+                 SUM(Total) AS MonthTotal
+          FROM Orders
+          WHERE OrderDate >= '2024-01-01'
+            AND OrderDate <  '2025-01-01'
+          GROUP BY DATEFROMPARTS(YEAR(OrderDate), MONTH(OrderDate), 1)
+      )
+      SELECT Month,
+             MonthTotal,
+             SUM(MonthTotal) OVER (
+                 ORDER BY Month
+                 ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+             ) AS RunningTotal
+      FROM monthly
+      ORDER BY Month;
+    `,
+    explain: [
+      "**Step 1** (the CTE) groups orders by month. `DATEFROMPARTS(year, month, 1)` turns every date into the first day of its month, which is a clean grouping key that also sorts correctly.",
+      "**Step 2** uses `SUM(...) OVER (ORDER BY Month ...)`. Unlike a normal `SUM`, a window function doesn't collapse rows: each month keeps its own row and also gets the sum of all months up to and including itself.",
+      "The date filter uses `>= start AND < next start` instead of `YEAR(OrderDate) = 2024`. Wrapping the column in a function stops the database from using an index on `OrderDate`; the condition is no longer **sargable**.",
+      { label: "Result", src: src`
+        Month        MonthTotal   RunningTotal
+        2024-01-01   12,000.00    12,000.00
+        2024-02-01    9,500.00    21,500.00
+        2024-03-01   14,200.00    35,700.00
+        ...
+      ` }
+    ],
+    tip: "Write out `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`. Without it, SQL Server defaults to `RANGE`, which is slower and groups together rows with equal `ORDER BY` values."
   }
 ];
 
-const STORAGE_KEY = "dotnet-quiz-state-v1";
+/* ------------------------------------------------------------------------ */
+
+const STORAGE_KEY = "dotnet-quiz-state-v2";
 const $ = (id) => document.getElementById(id);
 const motion = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+const TOPICS = [...new Set(QUESTIONS.map(q => q.topic))];
+const isCode = (q) => q.type === "code";
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -657,18 +2037,23 @@ function shuffle(arr) {
 
 function freshState() {
   const opt = {};
-  QUESTIONS.forEach(q => { opt[q.id] = shuffle(q.options.map((_, i) => i)); });
-  return { order: QUESTIONS.map(q => q.id), opt, answers: {}, revealed: false, onlyWrong: false };
+  QUESTIONS.forEach(q => { if (!isCode(q)) opt[q.id] = shuffle(q.options.map((_, i) => i)); });
+  return {
+    order: QUESTIONS.map(q => q.id), opt,
+    answers: {}, drafts: {}, shown: {}, grades: {},
+    revealed: false, onlyWrong: false, filter: "all"
+  };
 }
 
 function loadState() {
   try {
     const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!s || !Array.isArray(s.order)) return null;
-    const ids = new Set(QUESTIONS.map(q => q.id));
-    const valid = s.order.length === ids.size && s.order.every(id => ids.has(id)) &&
-      QUESTIONS.every(q => Array.isArray(s.opt?.[q.id]) && s.opt[q.id].length === q.options.length);
-    return valid ? { answers: {}, revealed: false, onlyWrong: false, ...s } : null;
+    const valid = s.order.length === QUESTIONS.length && s.order.every(id => byId[id]) &&
+      QUESTIONS.every(q => isCode(q) || (Array.isArray(s.opt?.[q.id]) && s.opt[q.id].length === q.options.length));
+    if (!valid) return null;
+    const base = freshState();
+    return { ...base, ...s, filter: TOPICS.includes(s.filter) || s.filter === "code" ? s.filter : "all" };
   } catch { return null; }
 }
 
@@ -677,14 +2062,25 @@ function saveState() {
 }
 
 let state = loadState() || freshState();
-const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
 
-/* Render text with `inline code` spans, safely (no innerHTML). */
+/* ---------- Question status ---------- */
+const isShown = (q) => state.revealed || !!state.shown[q.id];
+const hasDraft = (q) => !!(state.drafts[q.id] || "").trim();
+const isDone = (q) => isShown(q) || (isCode(q) ? hasDraft(q) : state.answers[q.id] !== undefined);
+const isCorrect = (q) => isCode(q) ? state.grades[q.id] === "yes" : state.answers[q.id] === q.answer;
+const isChecked = (q) => isShown(q) && (!isCode(q) || !!state.grades[q.id]);
+const matchesFilter = (q) => state.filter === "all" || (state.filter === "code" ? isCode(q) : q.topic === state.filter);
+
+/* ---------- Small DOM helpers ---------- */
+/* Render `inline code` and **bold** safely (no innerHTML). */
 function rich(el, text) {
-  text.split("`").forEach((part, i) => {
+  text.split(/(`[^`]*`|\*\*[^*]+\*\*)/).forEach(part => {
     if (!part) return;
-    if (i % 2) { const c = document.createElement("code"); c.textContent = part; el.appendChild(c); }
-    else el.appendChild(document.createTextNode(part));
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 1) {
+      const c = document.createElement("code"); c.textContent = part.slice(1, -1); el.appendChild(c);
+    } else if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      const b = document.createElement("strong"); b.textContent = part.slice(2, -2); el.appendChild(b);
+    } else el.appendChild(document.createTextNode(part));
   });
   return el;
 }
@@ -694,55 +2090,117 @@ function el(tag, cls, text) {
   if (text != null) rich(e, text);
   return e;
 }
+function codeBlock(text, label) {
+  const wrap = el("div", "codeblock");
+  if (label) wrap.appendChild(el("div", "codelabel", label));
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.textContent = text;
+  pre.appendChild(code);
+  wrap.appendChild(pre);
+  return wrap;
+}
 
-function isCorrect(q) { return state.answers[q.id] === q.answer; }
+/* ---------- Cards ---------- */
+function verdictFor(q) {
+  if (isCode(q)) {
+    const g = state.grades[q.id];
+    return g === "yes" ? ["ok", "Got it"] : g === "no" ? ["bad", "Not quite"] : ["muted", "Grade yourself"];
+  }
+  if (state.answers[q.id] === undefined) return ["muted", "Not answered"];
+  return isCorrect(q) ? ["ok", "Correct"] : ["bad", "Incorrect"];
+}
 
-function renderQuiz() {
-  const root = $("quiz");
-  root.textContent = "";
-  root.classList.toggle("revealed", state.revealed);
-  root.classList.toggle("only-wrong", state.revealed && state.onlyWrong);
+function renderExplain(q) {
+  const box = el("div", "explain");
+  if (isCode(q)) {
+    box.append(el("h4", null, "Model answer"), codeBlock(q.solution, q.lang));
+    box.append(el("h4", null, "How it works"));
+  } else {
+    box.append(el("h4", null, "Explanation"));
+  }
+  q.explain.forEach(item => box.append(typeof item === "string" ? el("p", null, item) : codeBlock(item.src, item.label)));
+  if (q.tip) {
+    const tip = el("div", "tip");
+    tip.append(el("strong", null, "Remember"), el("p", null, q.tip));
+    box.append(tip);
+  }
+  return box;
+}
 
-  state.order.forEach((id, idx) => {
-    const q = byId[id];
+function showOne(id) {
+  state.shown[id] = true;
+  saveState();
+  refreshCard(id);
+  updateProgress();
+  if (state.revealed) renderResults();
+}
+
+function renderCard(id) {
+  const q = byId[id];
+  const idx = state.order.indexOf(id);
+  const shown = isShown(q);
+  const card = el("article", "card");
+  card.id = "card-" + id;
+  card.hidden = !matchesFilter(q);
+  if (shown) card.classList.add("revealed", isCorrect(q) ? "is-correct" : "is-wrong");
+
+  const meta = el("div", "meta");
+  meta.append(el("span", "num", `Q${idx + 1}`), el("span", "chip", q.topic));
+  if (isCode(q)) meta.append(el("span", "chip kind", q.lang === "SQL" ? "Write SQL" : "Write code"));
+  if (shown) {
+    const [cls, text] = verdictFor(q);
+    meta.append(el("span", "verdict " + cls, text));
+  }
+  card.append(meta, el("p", "qtext", q.q));
+  if (q.given) card.appendChild(codeBlock(q.given, q.givenLabel || q.lang || "C#"));
+
+  const actions = el("div", "card-actions");
+
+  if (isCode(q)) {
+    const draft = state.drafts[id] || "";
+    if (shown && !draft.trim()) {
+      card.appendChild(el("p", "no-answer", "You didn't write an answer for this one."));
+    } else {
+      const label = el("label", "answer-label", "Your answer");
+      label.htmlFor = "answer-" + id;
+      const ta = document.createElement("textarea");
+      ta.id = "answer-" + id;
+      ta.className = "answer";
+      ta.spellcheck = false;
+      ta.rows = 9;
+      ta.placeholder = q.lang === "SQL" ? "Write your SQL here..." : "Write your C# here...";
+      ta.value = draft;
+      ta.readOnly = shown;
+      ta.addEventListener("input", () => { state.drafts[id] = ta.value; saveState(); updateProgress(); });
+      card.append(label, ta);
+    }
+    if (!shown) {
+      const btn = el("button", null, "Show model answer");
+      btn.addEventListener("click", () => showOne(id));
+      actions.append(btn, el("span", "note", "You'll grade yourself after comparing."));
+      card.appendChild(actions);
+    }
+  } else {
     const chosen = state.answers[id];
-    const card = el("article", "card");
-    card.id = "card-" + id;
-    if (state.revealed) card.classList.add(isCorrect(q) ? "is-correct" : "is-wrong");
-
-    const meta = el("div", "meta");
-    meta.append(el("span", "num", `Q${idx + 1}`), el("span", "chip", q.topic));
-    if (state.revealed) {
-      const ok = isCorrect(q);
-      meta.append(el("span", "verdict " + (ok ? "ok" : "bad"),
-        ok ? "Correct" : (chosen === undefined ? "Unanswered" : "Incorrect")));
-    }
-    card.append(meta, el("p", "qtext", q.q));
-
-    if (q.code) {
-      const pre = document.createElement("pre");
-      const code = document.createElement("code");
-      code.textContent = q.code.join("\n");
-      pre.appendChild(code);
-      card.appendChild(pre);
-    }
-
     const opts = el("div", "options");
     opts.setAttribute("role", "radiogroup");
+    const btn = el("button", null, chosen === undefined ? "Show answer" : "Check answer");
     state.opt[id].forEach(oi => {
       const label = el("label", "opt");
       const input = document.createElement("input");
       input.type = "radio"; input.name = id; input.value = oi;
       input.checked = chosen === oi;
-      input.disabled = state.revealed;
+      input.disabled = shown;
       input.addEventListener("change", () => {
         state.answers[id] = oi;
         saveState();
+        btn.textContent = "Check answer";
         updateProgress();
       });
       const text = el("span", "opt-text");
       text.appendChild(el("span", "opt-label", q.options[oi]));
-      if (state.revealed) {
+      if (shown) {
         if (oi === q.answer) { label.classList.add("correct"); text.appendChild(el("span", "tag", "✓ Correct answer")); }
         else if (oi === chosen) { label.classList.add("wrong"); text.appendChild(el("span", "tag", "✗ Your answer")); }
       }
@@ -750,24 +2208,93 @@ function renderQuiz() {
       opts.appendChild(label);
     });
     card.appendChild(opts);
-
-    if (state.revealed) {
-      const ex = el("div", "explain");
-      ex.appendChild(el("strong", null, "Explanation"));
-      ex.appendChild(rich(document.createElement("span"), q.explain));
-      card.appendChild(ex);
+    if (!shown) {
+      btn.addEventListener("click", () => showOne(id));
+      actions.appendChild(btn);
+      card.appendChild(actions);
     }
-    root.appendChild(card);
+  }
+
+  if (shown) {
+    card.appendChild(renderExplain(q));
+    if (isCode(q)) {
+      const grade = el("div", "grade");
+      grade.appendChild(el("span", "q", "How did you do?"));
+      [["yes", "✓ I got it"], ["no", "✗ Not quite"]].forEach(([value, text]) => {
+        const b = el("button", value, text);
+        b.setAttribute("aria-pressed", String(state.grades[id] === value));
+        b.addEventListener("click", () => {
+          state.grades[id] = value;
+          saveState();
+          refreshCard(id);
+          $("card-" + id).querySelector(`.grade .${value}`)?.focus({ preventScroll: true });
+          updateProgress();
+          if (state.revealed) renderResults();
+        });
+        grade.appendChild(b);
+      });
+      card.appendChild(grade);
+    }
+  }
+  return card;
+}
+
+function refreshCard(id) {
+  const old = $("card-" + id);
+  if (old) old.replaceWith(renderCard(id));
+}
+
+function renderQuiz() {
+  const root = $("quiz");
+  root.textContent = "";
+  root.classList.toggle("only-wrong", state.revealed && state.onlyWrong);
+  state.order.forEach(id => root.appendChild(renderCard(id)));
+  updateEmpty();
+}
+
+function updateEmpty() {
+  const anyVisible = state.order.some(id => {
+    const q = byId[id];
+    return matchesFilter(q) && !(state.revealed && state.onlyWrong && isCorrect(q));
+  });
+  $("empty").hidden = anyVisible;
+}
+
+/* ---------- Filters ---------- */
+function renderFilters() {
+  const bar = $("filters");
+  bar.textContent = "";
+  const items = [["all", "All", QUESTIONS.length]]
+    .concat(TOPICS.map(t => [t, t, QUESTIONS.filter(q => q.topic === t).length]))
+    .concat([["code", "Write code", QUESTIONS.filter(isCode).length]]);
+  items.forEach(([key, label, n]) => {
+    const b = el("button", "filter", label);
+    b.appendChild(el("span", "count", " " + n));
+    b.setAttribute("aria-pressed", String(state.filter === key));
+    b.addEventListener("click", () => setFilter(key));
+    bar.appendChild(b);
   });
 }
 
-function unanswered() { return state.order.filter(id => state.answers[id] === undefined); }
+function setFilter(key) {
+  state.filter = key;
+  saveState();
+  renderFilters();
+  state.order.forEach(id => { const c = $("card-" + id); if (c) c.hidden = !matchesFilter(byId[id]); });
+  updateEmpty();
+}
 
+/* ---------- Progress bar & results ---------- */
 function updateProgress() {
   const total = QUESTIONS.length;
-  const done = total - unanswered().length;
-  $("progressText").innerHTML = "";
-  $("progressText").append(`${done} / ${total} `, el("small", null, "answered"));
+  const done = QUESTIONS.filter(isDone).length;
+  const checked = QUESTIONS.filter(isChecked);
+  const right = checked.filter(isCorrect).length;
+
+  const pt = $("progressText");
+  pt.textContent = "";
+  pt.append(`${done} / ${total} `, el("small", null, "done"));
+  if (checked.length && !state.revealed) pt.append(el("small", null, ` · ${right} of ${checked.length} checked correct`));
   $("fill").style.width = (done / total * 100) + "%";
 
   const btn = $("revealBtn");
@@ -777,33 +2304,47 @@ function updateProgress() {
     btn.disabled = false;
     $("hint").hidden = true;
   } else {
-    btn.textContent = "Reveal answers";
+    btn.textContent = "Reveal all answers";
     btn.disabled = left > 0;
     $("hint").hidden = left === 0;
-    $("hintText").textContent = `Answer ${left} more question${left === 1 ? "" : "s"} to unlock the answers.`;
+    $("hintText").textContent = `Answer ${left} more question${left === 1 ? "" : "s"} to unlock all answers, or check any question on its own.`;
   }
 }
 
 function renderResults() {
   const box = $("results");
   box.hidden = !state.revealed;
-  if (!state.revealed) { box.textContent = ""; return; }
   box.textContent = "";
+  if (!state.revealed) return;
 
   const total = QUESTIONS.length;
   const right = QUESTIONS.filter(isCorrect).length;
   const pct = Math.round(right / total * 100);
   const msg = pct >= 90 ? "Excellent! You really know your .NET."
-    : pct >= 70 ? "Solid work. Review the explanations for the ones you missed."
-    : pct >= 50 ? "Decent start. The explanations below cover the tricky parts."
-    : "Plenty to learn. Read through the explanations and try again.";
+    : pct >= 70 ? "Solid work. Read the explanations for the ones you missed."
+    : pct >= 50 ? "Decent start. The explanations below walk through the tricky parts."
+    : "Plenty to learn. Work through the explanations, then try again.";
 
   const score = el("div", "score");
   score.append(el("span", "big", `${right} / ${total}`), el("span", "pct", `${pct}%`), el("p", "msg", msg));
   box.appendChild(score);
 
+  const mcq = QUESTIONS.filter(q => !isCode(q));
+  const code = QUESTIONS.filter(isCode);
+  box.appendChild(el("p", "split",
+    `Multiple choice: ${mcq.filter(isCorrect).length} / ${mcq.length} · Write code (self-graded): ${code.filter(isCorrect).length} / ${code.length}`));
+
+  const ungraded = code.filter(q => !state.grades[q.id]);
+  if (ungraded.length) {
+    const p = el("div", "pending", `${ungraded.length} coding question${ungraded.length === 1 ? " is" : "s are"} waiting for your self-grade.`);
+    const go = el("button", "link", "Grade the next one");
+    go.addEventListener("click", () => jumpTo(ungraded[0].id));
+    p.appendChild(go);
+    box.appendChild(p);
+  }
+
   const topics = el("div", "topics");
-  [...new Set(QUESTIONS.map(q => q.topic))].forEach(t => {
+  TOPICS.forEach(t => {
     const qs = QUESTIONS.filter(q => q.topic === t);
     const ok = qs.filter(isCorrect).length;
     const row = el("div", "topic");
@@ -819,19 +2360,20 @@ function renderResults() {
   const actions = el("div", "actions");
   const toggle = el("label", "toggle");
   const cb = document.createElement("input");
-  cb.type = "checkbox"; cb.checked = !!state.onlyWrong;
+  cb.type = "checkbox"; cb.id = "onlyWrong"; cb.checked = !!state.onlyWrong;
   cb.addEventListener("change", () => {
     state.onlyWrong = cb.checked; saveState();
     $("quiz").classList.toggle("only-wrong", cb.checked);
+    updateEmpty();
   });
-  toggle.append(cb, document.createTextNode("Show only questions I got wrong"));
+  toggle.append(cb, document.createTextNode("Show only questions I missed"));
   const retake = el("button", null, "Retake quiz");
   retake.addEventListener("click", retakeQuiz);
   actions.append(toggle, retake);
   box.appendChild(actions);
 }
 
-/* In-page confirmation (browser confirm() dialogs are blocked in some viewers). */
+/* ---------- In-page confirmation (browser confirm() is blocked in some viewers) ---------- */
 let pendingAction = null;
 function askConfirm(message, yesLabel, action) {
   pendingAction = action;
@@ -845,6 +2387,7 @@ function closeConfirm() {
   $("confirmRow").hidden = true;
 }
 
+/* ---------- Actions ---------- */
 function reveal() {
   closeConfirm();
   state.revealed = true;
@@ -854,7 +2397,7 @@ function reveal() {
 }
 
 function retakeQuiz() {
-  askConfirm("Clear your answers and start over? Questions and options will be shuffled.", "Start over", () => {
+  askConfirm("Clear all your answers and start over? Questions and options will be shuffled.", "Start over", () => {
     state = freshState();
     state.order = shuffle(state.order);
     saveState();
@@ -863,22 +2406,30 @@ function retakeQuiz() {
   });
 }
 
-function jumpToNext() {
-  const id = unanswered()[0];
-  if (!id) return;
+function jumpTo(id) {
+  const q = byId[id];
+  if (!matchesFilter(q)) setFilter("all");
+  if (state.onlyWrong && isCorrect(q)) { state.onlyWrong = false; saveState(); renderResults(); $("quiz").classList.remove("only-wrong"); }
   const card = $("card-" + id);
   card.scrollIntoView({ behavior: motion(), block: "start" });
   card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
-  setTimeout(() => card.querySelector("input")?.focus({ preventScroll: true }), 400);
+  setTimeout(() => card.querySelector("input:not(:disabled), textarea:not([readonly]), .grade button")?.focus({ preventScroll: true }), 400);
 }
 
-function renderAll() { renderResults(); renderQuiz(); updateProgress(); }
+function jumpToNext() {
+  const visible = state.order.filter(id => !isDone(byId[id]) && matchesFilter(byId[id]));
+  const any = state.order.filter(id => !isDone(byId[id]));
+  const id = visible[0] || any[0];
+  if (id) jumpTo(id);
+}
+
+function renderAll() { renderFilters(); renderResults(); renderQuiz(); updateProgress(); }
 
 $("revealBtn").addEventListener("click", () => state.revealed ? retakeQuiz() : reveal());
 $("jumpBtn").addEventListener("click", jumpToNext);
 $("forceBtn").addEventListener("click", () => {
-  const left = unanswered().length;
-  askConfirm(`You still have ${left} unanswered question${left === 1 ? "" : "s"}. Reveal the answers anyway?`, "Reveal answers", reveal);
+  const left = QUESTIONS.filter(q => !isDone(q)).length;
+  askConfirm(`You still have ${left} unanswered question${left === 1 ? "" : "s"}. Reveal all answers anyway?`, "Reveal all", reveal);
 });
 $("confirmYes").addEventListener("click", () => { const action = pendingAction; closeConfirm(); action?.(); });
 $("confirmNo").addEventListener("click", closeConfirm);
