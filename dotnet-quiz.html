@@ -20,6 +20,7 @@
     --bad: #bf3329;
     --bad-soft: #fbe8e6;
     --shadow: 0 1px 2px rgba(20, 24, 40, .06), 0 2px 8px rgba(20, 24, 40, .04);
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -37,6 +38,7 @@
       --bad: #f0776c;
       --bad-soft: #321917;
       --shadow: none;
+      color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
@@ -54,6 +56,7 @@
     --bad: #f0776c;
     --bad-soft: #321917;
     --shadow: none;
+    color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
@@ -73,7 +76,7 @@
 
   /* Sticky progress bar */
   .bar {
-    position: sticky; top: 0; z-index: 10;
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
     background: color-mix(in srgb, var(--bg) 88%, transparent);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -96,6 +99,8 @@
   button:focus-visible, input:focus-visible + .opt-text { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   [hidden] { display: none !important; }
+  .confirm { font-size: .95rem; padding-top: 0 !important; }
+  .confirm span { flex: 1 1 220px; min-width: 0; }
   .hint { color: var(--muted); font-size: .9rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 
   /* Question cards */
@@ -168,6 +173,10 @@
   .only-wrong .card.is-correct { display: none; }
   footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 0 0 40px; }
 
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
   @media (max-width: 520px) {
     header.intro { padding-top: 28px; }
     header.intro h1 { font-size: 1.5rem; }
@@ -197,6 +206,11 @@
     <span id="hintText"></span>
     <button class="link" id="jumpBtn">Next unanswered</button>
     <button class="link" id="forceBtn">Reveal anyway</button>
+  </div>
+  <div class="wrap confirm" id="confirmRow" role="alertdialog" aria-labelledby="confirmText" hidden>
+    <span id="confirmText"></span>
+    <button class="primary" id="confirmYes">Yes</button>
+    <button id="confirmNo">Cancel</button>
   </div>
 </div>
 
@@ -630,6 +644,7 @@ const QUESTIONS = [
 
 const STORAGE_KEY = "dotnet-quiz-state-v1";
 const $ = (id) => document.getElementById(id);
+const motion = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -816,27 +831,43 @@ function renderResults() {
   box.appendChild(actions);
 }
 
+/* In-page confirmation (browser confirm() dialogs are blocked in some viewers). */
+let pendingAction = null;
+function askConfirm(message, yesLabel, action) {
+  pendingAction = action;
+  $("confirmText").textContent = message;
+  $("confirmYes").textContent = yesLabel;
+  $("confirmRow").hidden = false;
+  $("confirmYes").focus({ preventScroll: true });
+}
+function closeConfirm() {
+  pendingAction = null;
+  $("confirmRow").hidden = true;
+}
+
 function reveal() {
+  closeConfirm();
   state.revealed = true;
   saveState();
   renderAll();
-  $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("results").scrollIntoView({ behavior: motion(), block: "start" });
 }
 
 function retakeQuiz() {
-  if (!confirm("Clear your answers and start over? Questions and options will be shuffled.")) return;
-  state = freshState();
-  state.order = shuffle(state.order);
-  saveState();
-  renderAll();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  askConfirm("Clear your answers and start over? Questions and options will be shuffled.", "Start over", () => {
+    state = freshState();
+    state.order = shuffle(state.order);
+    saveState();
+    renderAll();
+    window.scrollTo({ top: 0, behavior: motion() });
+  });
 }
 
 function jumpToNext() {
   const id = unanswered()[0];
   if (!id) return;
   const card = $("card-" + id);
-  card.scrollIntoView({ behavior: "smooth", block: "start" });
+  card.scrollIntoView({ behavior: motion(), block: "start" });
   card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
   setTimeout(() => card.querySelector("input")?.focus({ preventScroll: true }), 400);
 }
@@ -847,8 +878,10 @@ $("revealBtn").addEventListener("click", () => state.revealed ? retakeQuiz() : r
 $("jumpBtn").addEventListener("click", jumpToNext);
 $("forceBtn").addEventListener("click", () => {
   const left = unanswered().length;
-  if (confirm(`You still have ${left} unanswered question${left === 1 ? "" : "s"}. Reveal the answers anyway?`)) reveal();
+  askConfirm(`You still have ${left} unanswered question${left === 1 ? "" : "s"}. Reveal the answers anyway?`, "Reveal answers", reveal);
 });
+$("confirmYes").addEventListener("click", () => { const action = pendingAction; closeConfirm(); action?.(); });
+$("confirmNo").addEventListener("click", closeConfirm);
 
 renderAll();
 </script>
