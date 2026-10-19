@@ -1,0 +1,1851 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windows Service Interview Prep</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --surface: #ffffff;
+    --text: #1b1f2a;
+    --muted: #5b6475;
+    --border: #e3e6ee;
+    --accent: #512bd4;
+    --accent-text: #ffffff;
+    --accent-soft: #ece8fc;
+    --code-bg: #f2f3f7;
+    --ok: #17784a;
+    --ok-soft: #e4f4eb;
+    --bad: #bf3329;
+    --bad-soft: #fbe8e6;
+    --shadow: 0 1px 2px rgba(20, 24, 40, .06), 0 2px 8px rgba(20, 24, 40, .04);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1117;
+      --surface: #171a22;
+      --text: #e7e9ee;
+      --muted: #9aa3b2;
+      --border: #2a2f3b;
+      --accent: #9b87f5;
+      --accent-text: #120d26;
+      --accent-soft: #261f47;
+      --code-bg: #11141b;
+      --ok: #4cc38a;
+      --ok-soft: #12271d;
+      --bad: #f0776c;
+      --bad-soft: #321917;
+      --shadow: none;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1117;
+    --surface: #171a22;
+    --text: #e7e9ee;
+    --muted: #9aa3b2;
+    --border: #2a2f3b;
+    --accent: #9b87f5;
+    --accent-text: #120d26;
+    --accent-soft: #261f47;
+    --code-bg: #11141b;
+    --ok: #4cc38a;
+    --ok-soft: #12271d;
+    --bad: #f0776c;
+    --bad-soft: #321917;
+    --shadow: none;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  code, pre, textarea.answer { font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace; }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 0 16px; }
+
+  header.intro { padding: 40px 0 16px; }
+  header.intro h1 { margin: 0 0 6px; font-size: 1.9rem; letter-spacing: -.01em; text-wrap: balance; }
+  header.intro p { margin: 0 0 14px; color: var(--muted); max-width: 65ch; }
+
+  /* Topic filters */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter { font-size: .85rem; padding: 5px 11px; border-radius: 99px; }
+  .filter .count { opacity: .7; font-variant-numeric: tabular-nums; margin-left: 2px; }
+  .filter[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+
+  /* Sticky progress bar */
+  .bar {
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar .wrap { display: flex; align-items: center; gap: 12px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+  .progress-text { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 0; }
+  .progress-text small { font-weight: 400; color: var(--muted); }
+  .track { flex: 1 1 120px; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+
+  button {
+    font: inherit; cursor: pointer; border-radius: 8px; padding: 8px 14px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+  button.primary:disabled { opacity: .45; cursor: not-allowed; }
+  button.link { border: none; background: none; padding: 4px 2px; color: var(--accent); text-decoration: underline; }
+  button:focus-visible, input:focus-visible + .opt-text { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  [hidden] { display: none !important; }
+  .confirm { font-size: .95rem; padding-top: 0 !important; }
+  .confirm span { flex: 1 1 220px; min-width: 0; }
+  .hint { color: var(--muted); font-size: .9rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+  /* Question cards */
+  main { padding: 20px 0 60px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 18px 16px; margin: 0 0 16px; box-shadow: var(--shadow);
+    scroll-margin-top: 90px;
+  }
+  .card.flash { animation: flash 1.2s ease; }
+  @keyframes flash { 0%, 40% { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); } }
+  .meta { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; font-size: .8rem; flex-wrap: wrap; }
+  .num { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .chip { background: var(--accent-soft); color: var(--accent); padding: 2px 8px; border-radius: 99px; font-weight: 600; }
+  .chip.kind { background: var(--code-bg); color: var(--text); border: 1px solid var(--border); }
+  .verdict { margin-left: auto; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+  .verdict.ok { background: var(--ok-soft); color: var(--ok); }
+  .verdict.bad { background: var(--bad-soft); color: var(--bad); }
+  .verdict.muted { background: var(--code-bg); color: var(--muted); border: 1px solid var(--border); }
+  .qtext { margin: 0 0 12px; font-weight: 600; font-size: 1.05rem; overflow-wrap: anywhere; }
+  :not(pre) > code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: 0 5px; font-size: .88em; overflow-wrap: anywhere; }
+  .codeblock { margin: 0 0 14px; min-width: 0; }
+  .codelabel { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; margin: 0; overflow-x: auto; font-size: .86rem; line-height: 1.5; tab-size: 4;
+  }
+
+  .options { display: grid; gap: 8px; }
+  .opt { display: block; position: relative; cursor: pointer; }
+  .opt input { position: absolute; opacity: 0; pointer-events: none; }
+  .opt-text {
+    display: flex; gap: 10px; align-items: flex-start;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+    transition: border-color .15s, background .15s;
+  }
+  .opt-text::before {
+    content: ""; flex: none; width: 16px; height: 16px; margin-top: 3px; border-radius: 50%;
+    border: 2px solid var(--muted); box-sizing: border-box;
+  }
+  .opt-label { flex: 1 1 0; min-width: 0; overflow-wrap: anywhere; }
+  .opt:hover .opt-text { border-color: var(--accent); }
+  .opt input:checked + .opt-text { border-color: var(--accent); background: var(--accent-soft); }
+  .opt input:checked + .opt-text::before { border: 5px solid var(--accent); }
+
+  .revealed .opt { cursor: default; }
+  .revealed .opt:hover .opt-text { border-color: var(--border); }
+  .revealed .opt.correct .opt-text { border-color: var(--ok); background: var(--ok-soft); }
+  .revealed .opt.correct .opt-text::before { border-color: var(--ok); }
+  .revealed .opt.wrong .opt-text { border-color: var(--bad); background: var(--bad-soft); }
+  .revealed .opt.wrong .opt-text::before { border-color: var(--bad); }
+  .tag { margin-left: auto; padding-left: 8px; font-size: .78rem; font-weight: 700; white-space: nowrap; align-self: center; }
+  .correct .tag { color: var(--ok); }
+  .wrong .tag { color: var(--bad); }
+
+  /* Write-the-code questions */
+  .answer-label { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin: 0 0 6px; }
+  textarea.answer {
+    display: block; width: 100%; min-height: 10em; resize: vertical;
+    font-size: .88rem; line-height: 1.5; tab-size: 4;
+    background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  }
+  textarea.answer:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+  textarea.answer[readonly] { opacity: .9; }
+  .no-answer { color: var(--muted); font-style: italic; margin: 0; }
+
+  .card-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  .card-actions .note { color: var(--muted); font-size: .85rem; }
+
+  /* Explanations */
+  .explain { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); font-size: .95rem; }
+  .explain h4 { margin: 0 0 8px; font-size: .95rem; }
+  .explain h4:not(:first-child) { margin-top: 16px; }
+  .explain p { margin: 0 0 10px; max-width: 68ch; }
+  .explain .codeblock { margin: 0 0 12px; }
+  .tip { margin-top: 14px; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
+  .tip strong { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); margin-bottom: 2px; }
+  .tip p { margin: 0; }
+
+  .grade { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 16px; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+  .grade .q { font-weight: 600; margin-right: 4px; }
+  .grade button.yes[aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 600; }
+  .grade button.no[aria-pressed="true"] { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); font-weight: 600; }
+
+  /* Results */
+  .results { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: var(--shadow); scroll-margin-top: 90px; }
+  .score { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .score .big { font-size: 2.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .score .pct { font-size: 1.2rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .score .msg { margin: 6px 0 0; color: var(--muted); width: 100%; }
+  .split { margin: 10px 0 0; color: var(--muted); font-size: .92rem; font-variant-numeric: tabular-nums; }
+  .pending { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); font-size: .92rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .topics { display: grid; gap: 8px; margin: 18px 0; }
+  .topic { display: grid; grid-template-columns: minmax(0, 170px) 1fr auto; gap: 10px; align-items: center; font-size: .9rem; }
+  .topic .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topic .t { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .topic .f { height: 100%; background: var(--ok); }
+  .topic .n { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .toggle { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; font-size: .95rem; }
+
+  .only-wrong .card.is-correct { display: none; }
+  .empty { color: var(--muted); text-align: center; padding: 30px 0; }
+  footer { color: var(--muted); font-size: .85rem; text-align: center; padding: 0 16px 40px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  @media (max-width: 520px) {
+    header.intro { padding-top: 28px; }
+    header.intro h1 { font-size: 1.5rem; }
+    .card { padding: 14px; }
+    .topic { grid-template-columns: minmax(0, 120px) 1fr auto; }
+    .opt-text { flex-wrap: wrap; }
+    .tag { flex-basis: 100%; margin-left: 26px; padding-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="intro">
+  <div class="wrap">
+    <h1>Windows Service Interview Prep</h1>
+    <p>Practice for talking about a Windows service that communicates with a desktop GUI app, plus general C# questions. Press <strong>Show answer</strong> to check any question right away. <strong>Open answer</strong> cards are for writing code or practicing what you'd say out loud: write your answer, compare it with the example and mark how you did. Your progress is saved in this browser.</p>
+    <div class="filters" id="filters" role="toolbar" aria-label="Filter questions by topic"></div>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="progress-text" id="progressText">0 / 0 <small>done</small></span>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    <button class="primary" id="revealBtn" disabled>Reveal all answers</button>
+  </div>
+  <div class="wrap hint" id="hint" style="padding-bottom:10px">
+    <span id="hintText"></span>
+    <button class="link" id="jumpBtn">Next unanswered</button>
+    <button class="link" id="forceBtn">Reveal all anyway</button>
+  </div>
+  <div class="wrap confirm" id="confirmRow" role="alertdialog" aria-labelledby="confirmText" hidden>
+    <span id="confirmText"></span>
+    <button class="primary" id="confirmYes">Yes</button>
+    <button id="confirmNo">Cancel</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <section class="results" id="results" hidden></section>
+  <main id="quiz"></main>
+  <p class="empty" id="empty" hidden>No questions match this filter.</p>
+</div>
+
+<footer>Covers Windows services, service-to-GUI communication (named pipes, WCF, sessions), GUI threading, general C# and interview answers.</footer>
+
+<script>
+/* ------------------------------------------------------------------------
+   Question format
+   Multiple choice: { id, topic, q, given?, lang?, options, answer, explain, tip }
+     - `answer` is the index of the correct option (options are shuffled per attempt).
+   Write code:      { id, topic, type: "code", lang, q, given?, givenLabel?, solution, explain, tip }
+   `explain` is a list of paragraphs (strings) and code blocks ({ src, label }).
+   In text, `backticks` render as inline code and **double asterisks** as bold.
+   ------------------------------------------------------------------------ */
+
+/* Tagged template for code: keeps backslashes and strips common indentation. */
+function src(strings, ...values) {
+  const lines = String.raw(strings, ...values).replace(/^\n/, "").replace(/\n\s*$/, "").split("\n");
+  const indent = Math.min(...lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length));
+  return lines.map(l => l.slice(indent)).join("\n");
+}
+
+const QUESTIONS = [
+  /* =================== Windows Services =================== */
+  {
+    id: "ws-scm", topic: "Windows Services",
+    q: "What part of Windows starts services at boot, stops them, and restarts them when they fail?",
+    options: ["The Service Control Manager (SCM)", "Task Scheduler", "The Windows Registry", "IIS"],
+    answer: 0,
+    explain: [
+      "A **Windows service** is a long-running background process with no user interface. The **Service Control Manager** (SCM, the `services.exe` process) is the part of Windows that manages them. It keeps the list of installed services, starts each one according to its start type, sends it control requests (stop, pause, shutdown), tracks its status and applies the recovery actions when it crashes.",
+      "Everything you use to manage services talks to the SCM: the Services window (`services.msc`), `sc.exe`, PowerShell's `Get-Service` / `Start-Service`, and the .NET `ServiceController` class.",
+      { label: "Command line", src: src`
+        sc.exe query MyService          # status
+        sc.exe start MyService
+        sc.exe stop MyService
+        Get-Service MyService           # PowerShell
+      ` }
+    ],
+    tip: "One-line interview definition: \"A Windows service is a background process with no UI, managed by the Service Control Manager. It can start at boot before anyone logs in, runs under a service account, and can be restarted automatically if it fails.\""
+  },
+  {
+    id: "ws-session0", topic: "Windows Services",
+    q: "Since Windows Vista, why can't a Windows service show a window or a message box to the logged-in user?",
+    options: [
+      "Services run in session 0, which is isolated from the users' desktops",
+      "Services aren't allowed to reference WPF or WinForms",
+      "Windows services only run in Safe Mode",
+      "The SCM blocks every UI thread"
+    ],
+    answer: 0,
+    explain: [
+      "This is called **session 0 isolation**. All services run in session 0. Users who log in get session 1, 2 and so on, each with its own desktop. A window created in session 0 is on a desktop nobody can see.",
+      "Microsoft did this for security. Before Vista, services shared the desktop with users, so a normal program could send window messages to a window owned by a powerful SYSTEM service and trick it into running code (\"shatter attacks\").",
+      "That's exactly why your system had **two processes**: the service does the work in session 0, a separate GUI app runs in the user's session, and the two communicate through **IPC** (inter-process communication)."
+    ],
+    tip: "If they ask \"why a separate GUI app?\", this is the core of the answer: a service can't show UI, it runs without anyone logged in, and keeping the privileged part headless is safer."
+  },
+  {
+    id: "ws-start-timeout", topic: "Windows Services",
+    q: "A classic `ServiceBase` service does a 2-minute initialization (loading data, connecting to hardware) directly inside `OnStart`. What happens?",
+    options: [
+      "The SCM waits as long as needed",
+      "After about 30 seconds the SCM gives up and reports error 1053, \"the service did not respond in a timely fashion\"",
+      "Windows restarts",
+      "OnStart automatically moves the work to a background thread"
+    ],
+    answer: 1,
+    explain: [
+      "The SCM expects `OnStart` to **return quickly** (within about 30 seconds by default). If it doesn't, the start is treated as failed with error 1053.",
+      "The fix is to start the work on a background thread or task and return immediately. If you really need more time, call `RequestAdditionalTime(milliseconds)`.",
+      { label: "C# (classic .NET Framework style)", src: src`
+        public partial class DeviceService : ServiceBase
+        {
+            private CancellationTokenSource? _cts;
+            private Task? _worker;
+
+            protected override void OnStart(string[] args)
+            {
+                _cts = new CancellationTokenSource();
+                _worker = Task.Run(() => RunAsync(_cts.Token));   // start the work and return right away
+            }
+
+            protected override void OnStop()
+            {
+                _cts?.Cancel();                                   // ask the work to stop
+                _worker?.Wait(TimeSpan.FromSeconds(20));          // give it time to finish cleanly
+            }
+        }
+      ` },
+      "Modern Worker Services have a similar trap. `BackgroundService` treats the startup as done when `ExecuteAsync` reaches its first real `await`. Long synchronous code before that point blocks the service start."
+    ],
+    tip: "Error 1053 is the classic \"my service won't start\" error. Long work in OnStart is the first thing to check."
+  },
+  {
+    id: "ws-worker", topic: "Windows Services",
+    q: "In modern .NET (6 and later), what's the usual way to build a Windows service?",
+    options: [
+      "A Worker Service (BackgroundService) with `AddWindowsService()` / `UseWindowsService()`",
+      "Inherit from `System.Web.HttpApplication`",
+      "A console app with `while (true)` and `Thread.Sleep`",
+      "A WCF Service Library project"
+    ],
+    answer: 0,
+    explain: [
+      "The **Worker Service** template uses the same Generic Host as ASP.NET Core, so you get dependency injection, configuration (`appsettings.json`), logging and graceful shutdown for free. Your logic goes in a class that inherits `BackgroundService`.",
+      "Adding the `Microsoft.Extensions.Hosting.WindowsServices` package and calling `AddWindowsService()` makes the host talk to the SCM: it reports start and stop, turns \"service stopping\" into a cancelled `stoppingToken`, sets the content root to the exe's folder and adds Event Log logging.",
+      { label: "Program.cs", src: src`
+        var builder = Host.CreateApplicationBuilder(args);
+
+        builder.Services.AddWindowsService(options =>
+        {
+            options.ServiceName = "My Device Service";
+        });
+        builder.Services.AddHostedService<DeviceWorker>();
+
+        builder.Build().Run();
+      ` },
+      "Older services (.NET Framework) inherit from `System.ServiceProcess.ServiceBase` and override `OnStart` / `OnStop`. If your project was on .NET Framework, that's probably what you used."
+    ],
+    tip: "Know which one your project used. If it was ServiceBase, you can add: \"the modern equivalent is a Worker Service with BackgroundService\"."
+  },
+  {
+    id: "ws-current-dir", topic: "Windows Services",
+    q: "Your service calls `File.ReadAllText(\"settings.json\")`. It works when you run the .exe yourself but fails when it runs as a service. Most likely cause?",
+    options: [
+      "A service's current directory is `C:\\Windows\\System32`, not the folder of the .exe",
+      "Services can't read files",
+      "JSON isn't supported inside services",
+      "The SCM locks all files in the service's folder"
+    ],
+    answer: 0,
+    explain: [
+      "A relative path like `\"settings.json\"` is resolved against the **current directory**. When you double-click the exe, that's the exe's folder. When the SCM starts a service, it's `C:\\Windows\\System32`, so the file isn't found (or worse, a different file is used).",
+      { label: "C#", src: src`
+        // Build paths from the folder the exe lives in
+        string path = Path.Combine(AppContext.BaseDirectory, "settings.json");
+        string json = File.ReadAllText(path);
+      ` },
+      "The Worker Service host already sets its content root to the exe folder, so `appsettings.json` loads correctly. Your own relative `File` paths still use the current directory, though."
+    ],
+    tip: "\"It works on my machine but not as a service\" usually comes down to the current directory, the user account or permissions."
+  },
+  {
+    id: "ws-accounts", topic: "Windows Services",
+    q: "Which built-in account should a service use if it needs very few privileges on the local machine and no network identity?",
+    options: ["LocalSystem", "LocalService", "NetworkService", "A domain administrator account"],
+    answer: 1,
+    explain: [
+      "A service runs under an account that decides what it may access:",
+      { label: "Service accounts", src: src`
+        LocalSystem      full control of the machine; acts as the computer account on the network
+        LocalService     minimal local rights; anonymous on the network
+        NetworkService   minimal local rights; acts as the computer account on the network
+        Virtual account  "NT SERVICE\MyService": per-service identity, minimal rights (a good default)
+        gMSA / user      a domain account when it needs specific network resources
+      ` },
+      "Many device services run as **LocalSystem** because they need hardware or system access. That's easy but powerful: a bug or an insecure IPC endpoint then gives an attacker full control. The principle is **least privilege**: give the service only what it needs."
+    ],
+    tip: "Be ready for \"which account did your service run under, and why?\". If it was LocalSystem, explain why it was needed, for example hardware access or protected folders."
+  },
+  {
+    id: "ws-start-type", topic: "Windows Services",
+    q: "The service must start automatically when the device boots, but it isn't needed in the first minute and shouldn't slow the boot down. Which start type fits best?",
+    options: ["Automatic", "Automatic (Delayed Start)", "Manual", "Disabled"],
+    answer: 1,
+    explain: [
+      { label: "Start types", src: src`
+        Automatic                starts during boot
+        Automatic (Delayed)      starts shortly after the other automatic services (doesn't slow the boot)
+        Manual                   starts only when something asks it to (a user, an app, a trigger)
+        Disabled                 can't be started
+      ` },
+      { label: "Command line", src: src`
+        sc.exe config MyService start= delayed-auto
+      ` }
+    ],
+    tip: "The space after `start=` is required with sc.exe. It's a classic gotcha."
+  },
+  {
+    id: "ws-recovery", topic: "Windows Services",
+    q: "Your service occasionally crashes. How do you make Windows restart it automatically?",
+    options: [
+      "Configure the service's recovery actions (Recovery tab, or `sc.exe failure`) to restart it",
+      "Wrap `Main` in a `while (true)` loop",
+      "Set the start type to Automatic",
+      "Write a second service that watches the first one"
+    ],
+    answer: 0,
+    explain: [
+      "The SCM has built-in **recovery actions**: what to do on the first, second and later failures (restart the service, run a program, or restart the computer), and after how long to reset the failure count.",
+      { label: "Command line", src: src`
+        # restart after 5 s, 5 s, then 60 s; reset the failure count after one day
+        sc.exe failure MyService reset= 86400 actions= restart/5000/restart/5000/restart/60000
+      ` },
+      "There's a gotcha with Worker Services. If `ExecuteAsync` throws, the host (since .NET 6) logs the error and **stops cleanly**. Windows then sees a normal stop, not a crash, and the recovery actions don't run. Microsoft's docs recommend catching the exception and calling `Environment.Exit(1)`, so the non-zero exit code makes the SCM restart the service."
+    ],
+    tip: "Recovery actions plus good logging is the standard answer to \"how did you keep the service running reliably?\"."
+  },
+  {
+    id: "ws-debug", topic: "Windows Services",
+    q: "What's the easiest way to debug a Worker Service-based Windows service on your development machine?",
+    options: [
+      "Just run it from Visual Studio: when the SCM didn't start it, the host runs it as a normal console app",
+      "Only by reading the Event Log afterwards",
+      "Install Visual Studio on every device",
+      "Services can't be debugged"
+    ],
+    answer: 0,
+    explain: [
+      "`AddWindowsService()` checks whether the process was started by the SCM. If it wasn't, the app simply runs as a console app, so you press F5 and debug it like anything else.",
+      "Other options: install the service, then use **Debug → Attach to Process** in Visual Studio, running VS as administrator. Or put `System.Diagnostics.Debugger.Launch();` at the start, which asks you to attach a debugger, useful for bugs that happen during startup.",
+      "On real devices you rely on **logging**: files (Serilog, NLog), the Windows Event Log, or a central log system. A service has no console, so without logs you're blind."
+    ],
+    tip: "For classic ServiceBase services, a common trick was: if `Environment.UserInteractive` is true, call `OnStart` yourself and wait for a key press, instead of `ServiceBase.Run`."
+  },
+  {
+    id: "ws-profile", topic: "Windows Services",
+    q: "A service running as LocalSystem calls `Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)`. Where does it point?",
+    options: [
+      "The logged-in user's AppData folder",
+      "The system account's own profile, under `C:\\Windows\\System32\\config\\systemprofile`",
+      "`C:\\ProgramData`",
+      "It throws an exception"
+    ],
+    answer: 1,
+    explain: [
+      "A service runs as its **own account**, not as the logged-in user. It has its own profile, its own `HKEY_CURRENT_USER` registry and no access to the user's mapped network drives. So if the GUI saves something in the user's AppData, the service won't find it there.",
+      "Data shared by the service and the GUI belongs somewhere both can reach, usually `CommonApplicationData` (`C:\\ProgramData\\YourCompany\\...`), with permissions set so the GUI's user can read it and only the service can write it.",
+      { label: "C#", src: src`
+        string shared = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),  // C:\ProgramData
+            "MyCompany", "DeviceService");
+        Directory.CreateDirectory(shared);
+      ` }
+    ],
+    tip: "Different account means different profile, registry hive and permissions. This explains many service/GUI data-sharing bugs."
+  },
+  {
+    id: "ws-install", topic: "Windows Services",
+    q: "Which command correctly creates a service from a PowerShell prompt?",
+    options: [
+      "`sc.exe create MyService binPath= \"C:\\App\\MyService.exe\" start= auto`",
+      "`sc create MyService binPath=C:\\App\\MyService.exe`",
+      "`dotnet run --install-service`",
+      "`net start MyService --install`"
+    ],
+    answer: 0,
+    explain: [
+      "Two gotchas in the wrong option: `sc.exe` needs a **space after each `=`**, and in PowerShell `sc` is an alias for `Set-Content`, so you must type `sc.exe`.",
+      { label: "Install, update, remove", src: src`
+        # PowerShell alternative
+        New-Service -Name MyService -BinaryPathName "C:\App\MyService.exe" -StartupType Automatic
+
+        # Updating: stop -> replace the files -> start
+        sc.exe stop MyService
+        copy .\new\* C:\App\
+        sc.exe start MyService
+
+        sc.exe delete MyService      # uninstall
+      ` },
+      "Real products usually use an installer (an MSI built with WiX, Inno Setup and so on). It copies the files, registers the service, sets the start type and recovery actions, and handles upgrades. In old .NET Framework projects you'll also see `installutil.exe` with a `ProjectInstaller` class."
+    ],
+    tip: "Expect \"how was it installed and updated on the devices?\". Know your project's answer: an installer, a script, SCCM or Intune, or an auto-updater."
+  },
+
+  /* =================== Service ↔ GUI Communication =================== */
+  {
+    id: "ipc-options", topic: "Service ↔ GUI Communication",
+    q: "A Windows service and a GUI app run on the same machine. Which built-in mechanism is most commonly used to exchange messages between them?",
+    options: ["Named pipes", "Window messages (WM_COPYDATA)", "The clipboard", "Email"],
+    answer: 0,
+    explain: [
+      "A **named pipe** is a two-way communication channel between processes, identified by a name like `\\\\.\\pipe\\MyCompany.DeviceService`. It's fast, local and supports Windows security (ACLs). In .NET: `NamedPipeServerStream` (the service) and `NamedPipeClientStream` (the GUI).",
+      { label: "IPC options compared", src: src`
+        Named pipes            local, fast, secure; you design the messages (e.g. JSON lines)
+        WCF (net.pipe)         typed contracts over pipes; .NET Framework (CoreWCF on modern .NET)
+        gRPC                   typed contracts, streaming; over localhost TCP or named pipes (.NET 8+)
+        Local HTTP / SignalR   Kestrel inside the service; easy to test with a browser or Postman
+        Memory-mapped files    shared memory; fastest for big data, needs your own synchronization
+        Named events/mutexes   signals only ("data ready"), no data
+        Files / registry       simple, but needs polling; slow and race-prone
+        ServiceController      start/stop/status, plus custom command numbers 128-255
+      ` },
+      "Window messages don't work here: a service in session 0 has no window on the user's desktop."
+    ],
+    tip: "Know exactly what your project used and why. If they ask about alternatives, mention one or two from this list with a trade-off."
+  },
+  {
+    id: "ipc-pipe-acl", topic: "Service ↔ GUI Communication",
+    q: "The service (as LocalSystem) creates a `NamedPipeServerStream`. The GUI, running as a normal user, gets `UnauthorizedAccessException` when it connects with `PipeDirection.InOut`. Why?",
+    options: [
+      "A pipe created by LocalSystem only gives other users read access by default, so the service must set a pipe security ACL",
+      "Named pipes don't work across sessions",
+      "The pipe name must start with Global\\",
+      "The GUI must run as administrator"
+    ],
+    answer: 0,
+    explain: [
+      "Every pipe has a security descriptor that says who may connect and how. The default for a pipe created by LocalSystem gives full access to SYSTEM, administrators and the creator, but **only read access** to everyone else. A normal user asking for read/write is refused. That's why the bug often only shows up for non-admin users.",
+      "The fix is to create the pipe with an explicit `PipeSecurity` that grants the GUI's users read/write.",
+      { label: "C# (.NET 5+, Windows)", src: src`
+        var security = new PipeSecurity();
+        security.AddAccessRule(new PipeAccessRule(
+            new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null),
+            PipeAccessRights.ReadWrite, AccessControlType.Allow));
+        security.AddAccessRule(new PipeAccessRule(
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            PipeAccessRights.FullControl, AccessControlType.Allow));
+
+        var server = NamedPipeServerStreamAcl.Create(     // System.IO.Pipes.AccessControl
+            "MyCompany.DeviceService", PipeDirection.InOut,
+            NamedPipeServerStream.MaxAllowedServerInstances,
+            PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
+            0, 0, security);
+
+        // .NET Framework: new NamedPipeServerStream(name, direction, max, mode, options, 0, 0, security)
+      ` },
+      "Named pipes do work across sessions; their names are machine-wide. And never \"fix\" this by running the GUI as admin."
+    ],
+    tip: "\"Worked for admins, failed for normal users\" is a great real-world bug story if it ever happened to you."
+  },
+  {
+    id: "ipc-global-prefix", topic: "Service ↔ GUI Communication",
+    q: "The service creates `new EventWaitHandle(false, EventResetMode.AutoReset, \"DataReady\")`. The GUI opens `\"DataReady\"` too, but never receives the signal. Why?",
+    options: [
+      "Named kernel objects (events, mutexes, semaphores, memory-mapped files) are per-session by default; both sides must use the name Global\\DataReady",
+      "EventWaitHandle can't have a name",
+      "Only Mutex can be shared between processes",
+      "The GUI must poll every millisecond"
+    ],
+    answer: 0,
+    explain: [
+      "Names of kernel objects live in a **namespace per session**. Without a prefix, the name means `Local\\DataReady`, so the service's object is in session 0 and the GUI's is in session 1. They're two different objects with the same name.",
+      "Prefixing the name with `Global\\` puts it in the machine-wide namespace that every session shares. Creating global objects needs a privilege that services have and normal users usually don't, so let the **service create** the object and the **GUI open** it.",
+      { label: "C#", src: src`
+        // Service (session 0): creates it
+        var dataReady = new EventWaitHandle(false, EventResetMode.AutoReset, @"Global\MyCompany.DataReady");
+
+        // GUI (user session): opens the same object
+        var dataReady = EventWaitHandle.OpenExisting(@"Global\MyCompany.DataReady");
+      ` },
+      "Named **pipes** don't need this. Their names are already machine-wide."
+    ],
+    tip: "This connects to the Mutex questions in the other quiz: a single-instance check with `Local\\` (the default) is per session, while `Global\\` covers the whole machine."
+  },
+  {
+    id: "ipc-framing", topic: "Service ↔ GUI Communication",
+    q: "Over a byte-mode pipe, the GUI writes a 10 KB JSON message with one `WriteAsync`. The service calls `ReadAsync(buffer)` once. What can happen?",
+    options: [
+      "The service may receive only part of the message, so the protocol needs framing (a length prefix or one message per line)",
+      "It always receives exactly one whole message",
+      "ReadAsync throws if the message is bigger than the buffer",
+      "Messages can arrive in a different order"
+    ],
+    answer: 0,
+    explain: [
+      "A byte-mode pipe (like a TCP socket) is a **stream of bytes**, not a sequence of messages. One write can arrive in several reads, and several writes can arrive in one read. The order is always kept; the boundaries aren't.",
+      "So you need **framing**, a rule for where each message ends. Two common choices:",
+      { label: "C#: one JSON message per line (simple)", src: src`
+        // Sender
+        await writer.WriteLineAsync(JsonSerializer.Serialize(message));   // JSON has no raw newlines
+
+        // Receiver
+        while (await reader.ReadLineAsync(ct) is { } line)
+        {
+            var message = JsonSerializer.Deserialize<Message>(line);
+            // handle it
+        }
+      ` },
+      { label: "C#: length prefix (works for any data)", src: src`
+        static async Task WriteMessageAsync(Stream s, byte[] payload, CancellationToken ct)
+        {
+            await s.WriteAsync(BitConverter.GetBytes(payload.Length), ct);   // 4-byte length
+            await s.WriteAsync(payload, ct);
+        }
+
+        static async Task<byte[]> ReadMessageAsync(Stream s, CancellationToken ct)
+        {
+            var header = new byte[4];
+            await s.ReadExactlyAsync(header, ct);                            // .NET 7+
+            var payload = new byte[BitConverter.ToInt32(header)];
+            await s.ReadExactlyAsync(payload, ct);
+            return payload;
+        }
+      ` },
+      "On Windows, pipes also support `PipeTransmissionMode.Message`, which keeps message boundaries for you."
+    ],
+    tip: "\"How did you define the messages between the service and the GUI?\" is a likely follow-up. Mention the format (JSON, protobuf, WCF contracts) and the framing."
+  },
+  {
+    id: "ipc-multi-clients", topic: "Service ↔ GUI Communication",
+    q: "How does a named pipe server in the service handle several GUI clients, for example two users logged in at once?",
+    options: [
+      "Create a new server instance for each connection (allowing more than one instance), and handle each connected client in its own task",
+      "One NamedPipeServerStream instance talks to all clients at the same time",
+      "A pipe can only ever have one client",
+      "Clients take turns by polling"
+    ],
+    answer: 0,
+    explain: [
+      "Each `NamedPipeServerStream` object is **one connection**. To serve many clients, the service runs a loop: create a server instance, wait for a client, hand that connected pipe to a separate task, then immediately create the next instance to wait for the next client.",
+      { label: "C#", src: src`
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            var pipe = CreatePipe();                          // maxNumberOfServerInstances > 1
+            await pipe.WaitForConnectionAsync(stoppingToken);
+            _ = HandleClientAsync(pipe, stoppingToken);       // serve it in the background
+        }                                                     // ...and loop to accept the next one
+      ` },
+      "`HandleClientAsync` must catch its own exceptions and dispose the pipe when the client disconnects, so that one broken client can't crash the service."
+    ],
+    tip: "The full server is one of the \"write code\" questions in this quiz."
+  },
+  {
+    id: "ipc-wcf", topic: "Service ↔ GUI Communication",
+    q: "The service used WCF with the `net.pipe` binding on .NET Framework, and you're migrating to .NET 8. What happens to the WCF server side?",
+    options: [
+      "WCF hosting isn't part of modern .NET: use CoreWCF, or move to gRPC, plain named pipes or a local HTTP API",
+      "It works unchanged",
+      "Only the WCF client was removed; the server still works",
+      "It was renamed to System.Pipes"
+    ],
+    answer: 0,
+    explain: [
+      "**WCF** (Windows Communication Foundation) was the standard way to build typed IPC on .NET Framework. You defined a `[ServiceContract]` interface, and WCF generated the communication over named pipes (`net.pipe`) or TCP. It supported duplex callbacks, so the service could call the GUI back.",
+      "Modern .NET only ships WCF **client** libraries. To host a WCF service you'd use **CoreWCF** (a community port), or switch to **gRPC** (contracts in .proto files, streaming, works over named pipes from .NET 8), plain named pipes with JSON, or a small HTTP API with Kestrel inside the service.",
+      { label: "C# (WCF contract with a callback)", src: src`
+        [ServiceContract(CallbackContract = typeof(IStatusCallback))]
+        public interface IDeviceService
+        {
+            [OperationContract] DeviceStatus GetStatus();
+            [OperationContract] void Subscribe();
+        }
+
+        public interface IStatusCallback
+        {
+            [OperationContract(IsOneWay = true)] void StatusChanged(DeviceStatus status);
+        }
+      ` }
+    ],
+    tip: "If your project used WCF, say so confidently, and add that for a .NET 8 rewrite you'd consider gRPC or CoreWCF."
+  },
+  {
+    id: "ipc-push", topic: "Service ↔ GUI Communication",
+    q: "The service must tell the GUI immediately when something happens, for example \"device disconnected\". Which design works?",
+    options: [
+      "The GUI keeps a connection open (a duplex pipe, gRPC stream, SignalR or WCF callback) and the service pushes messages on it",
+      "The service calls a method on the GUI's window object directly",
+      "The service shows a MessageBox",
+      "It's impossible; the GUI can only poll"
+    ],
+    answer: 0,
+    explain: [
+      "There are two styles. **Polling**: the GUI asks \"anything new?\" every few seconds. It's simple but slow to react and wasteful. **Push**: the GUI opens a connection once and keeps it open, and the service writes an event to it whenever something happens.",
+      "With named pipes, push just means the connection stays open and is read in a loop. The GUI sends requests on it, and the service can send unsolicited events on the same pipe. Give every message a `Type` field so the GUI knows what it got.",
+      { label: "JSON messages (one per line)", src: src`
+        {"type":"getStatus"}                                      GUI -> service (request)
+        {"type":"status","devices":[{"id":"A1","online":true}]}   service -> GUI (reply)
+        {"type":"deviceDisconnected","id":"A1"}                   service -> GUI (pushed event)
+      ` }
+    ],
+    tip: "Request/response plus pushed events over one long-lived connection is a clear, professional way to describe the design."
+  },
+  {
+    id: "ipc-gui-optional", topic: "Service ↔ GUI Communication",
+    q: "The service wants to send a status update, but no GUI is connected (nobody is logged in). What should a robust service do?",
+    options: [
+      "Keep working normally; keep the latest state and send it whenever a GUI connects",
+      "Crash, so somebody notices",
+      "Block until a GUI connects",
+      "Start the GUI inside session 0"
+    ],
+    answer: 0,
+    explain: [
+      "The service must **never depend on the GUI**. It runs at boot, often with nobody logged in, and the user can close the GUI at any time. Sending must never block or throw because no client exists.",
+      "A clean design: the service keeps its **current state** in memory. When a GUI connects, it first asks for the full state (a \"snapshot\"), then receives updates. Whatever it missed while disconnected doesn't matter.",
+      "The GUI usually starts at login via the `Run` registry key, the Startup folder or a scheduled task. A service *can* start a process in the user's session (using `WTSQueryUserToken` plus `CreateProcessAsUser`), but that's advanced and rarely needed."
+    ],
+    tip: "\"Snapshot on connect, then incremental updates\" is a strong phrase to use when they ask how you kept the GUI in sync."
+  },
+  {
+    id: "ipc-custom-command", topic: "Service ↔ GUI Communication",
+    q: "The GUI only needs to tell the service \"reload your configuration\": no data and no reply. What's a simple built-in option?",
+    options: [
+      "Send a custom command with `ServiceController.ExecuteCommand(130)` and handle it in the service's `OnCustomCommand`",
+      "Restart Windows",
+      "Change the registry and hope the service notices",
+      "Kill the service process"
+    ],
+    answer: 0,
+    explain: [
+      "The SCM can deliver **custom control codes** (numbers 128 to 255) to a service. In a `ServiceBase` service, you override `OnCustomCommand(int command)`. The GUI can also use `ServiceController` to read `Status`, and with enough rights to `Start()` and `Stop()` the service.",
+      { label: "C#", src: src`
+        // GUI
+        using var sc = new ServiceController("MyService");
+        Console.WriteLine(sc.Status);        // Running, Stopped, StartPending...
+        sc.ExecuteCommand(130);              // our "reload config" command
+
+        // Service (ServiceBase)
+        protected override void OnCustomCommand(int command)
+        {
+            if (command == 130) ReloadConfiguration();
+        }
+      ` },
+      "It's limited: just a number, with no data and no reply, and the caller needs permission on the service. For anything richer, use the pipe."
+    ],
+    tip: "A nice detail to mention if your GUI showed the service status or had start and stop buttons."
+  },
+  {
+    id: "ipc-security", topic: "Service ↔ GUI Communication",
+    q: "Why is an IPC endpoint on a service running as LocalSystem a security concern?",
+    options: [
+      "Any process that can connect may get a SYSTEM-level process to act for it (privilege escalation), so restrict who can connect and validate every request",
+      "Named pipes send data over the internet",
+      "IPC slows Windows down",
+      "It isn't a concern"
+    ],
+    answer: 0,
+    explain: [
+      "The service has far more rights than a normal user. If it accepts a command like \"write this file\" or \"run this program\" from any client, a low-privilege user (or malware) can make the service do it with SYSTEM rights. That's **privilege escalation**.",
+      "Defenses: restrict the pipe ACL to the users or group that need it, accept only a fixed set of commands, validate all input (sizes, paths, values), never run paths or commands taken from messages, and identify the caller when it matters.",
+      { label: "C#", src: src`
+        string caller = pipe.GetImpersonationUserName();   // who is connected to this pipe?
+        logger.LogInformation("Command {Cmd} from {User}", request.Type, caller);
+      ` }
+    ],
+    tip: "Mentioning security unprompted (\"we restricted the pipe to authenticated users and only accepted known commands\") makes you sound senior."
+  },
+
+  /* =================== GUI & Threading =================== */
+  {
+    id: "gui-cross-thread", topic: "GUI & Threading",
+    q: "In the WPF app, a background thread reading from the pipe runs `statusText.Text = message;`. What happens?",
+    options: [
+      "InvalidOperationException: \"The calling thread cannot access this object because a different thread owns it\"",
+      "It works fine",
+      "The text updates later automatically",
+      "The app freezes forever"
+    ],
+    answer: 0,
+    explain: [
+      "WPF and WinForms controls belong to the **UI thread** that created them, and only that thread may touch them. WinForms throws \"Cross-thread operation not valid\" in the same situation.",
+      { label: "C#: ways to get back to the UI thread", src: src`
+        // 1. WPF Dispatcher (WinForms: control.Invoke / BeginInvoke)
+        Dispatcher.Invoke(() => statusText.Text = message);
+
+        // 2. Use await, starting from the UI thread: the code after await resumes on the UI thread
+        string message = await reader.ReadLineAsync(ct);   // started from the UI thread
+        statusText.Text = message;                          // safe
+
+        // 3. IProgress<T>: created on the UI thread, Report() can be called from anywhere
+        var progress = new Progress<string>(m => statusText.Text = m);
+        progress.Report("Connected");
+      ` },
+      "Option 2 works because of the **SynchronizationContext**: `await` captures the UI context and posts the rest of the method back to the UI thread."
+    ],
+    tip: "This connects your project to the SynchronizationContext topic, a nice way to show depth."
+  },
+  {
+    id: "gui-blocking-connect", topic: "GUI & Threading",
+    q: "In a button click handler, the GUI calls the blocking `pipeClient.Connect()`, and the service isn't running. What does the user see?",
+    options: [
+      "The window freezes (\"Not Responding\"), because the UI thread is stuck waiting",
+      "Nothing; Connect returns immediately",
+      "The service starts automatically",
+      "A friendly error message"
+    ],
+    answer: 0,
+    explain: [
+      "`Connect()` with no timeout waits **forever** for a server. On the UI thread, that means the window can't repaint or respond to clicks.",
+      { label: "C#", src: src`
+        private async void ConnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await _pipe.ConnectAsync(5000, _cts.Token);   // async + 5-second timeout
+                StatusText.Text = "Connected";
+            }
+            catch (TimeoutException)
+            {
+                StatusText.Text = "Service is not running";
+            }
+        }
+      ` }
+    ],
+    tip: "Rule: never block the UI thread on I/O. Use the async version with a timeout and cancellation."
+  },
+  {
+    id: "gui-progress", topic: "GUI & Threading",
+    q: "Which type is designed to report progress from background work back to the UI thread safely?",
+    options: ["`IProgress<T>` / `Progress<T>`", "`Thread.Sleep`", "`Interlocked`", "`ConcurrentBag<T>`"],
+    answer: 0,
+    explain: [
+      "`Progress<T>` captures the SynchronizationContext when it's **created** (on the UI thread). Every `Report(value)` call, from any thread, runs your callback on the UI thread.",
+      { label: "C#", src: src`
+        var progress = new Progress<int>(percent => ProgressBar.Value = percent);  // UI thread
+        await Task.Run(() => CopyFiles(progress));                                 // background
+
+        void CopyFiles(IProgress<int> progress)
+        {
+            for (int i = 1; i <= 100; i++)
+            {
+                // copy...
+                progress.Report(i);        // safe from a background thread
+            }
+        }
+      ` }
+    ],
+    tip: "The background method takes an `IProgress<T>` interface, so it doesn't know or care about WPF. That's clean and testable."
+  },
+  {
+    id: "gui-single-instance", topic: "GUI & Threading",
+    q: "Users sometimes start the GUI twice. You want at most one GUI per logged-in user, but several users on the same machine should each be able to run their own. Which mutex name fits?",
+    options: [
+      "A name without a prefix (Local\\ by default), so it's per session",
+      "Global\\MyGui, so it's machine-wide",
+      "No mutex is needed",
+      "A different random name on each start"
+    ],
+    answer: 0,
+    explain: [
+      "Named mutexes follow the session-namespace rule from the IPC section. Without a prefix, the name is **per session**, so each logged-in user can have one instance. With `Global\\`, only **one instance on the whole machine** is allowed.",
+      { label: "C#", src: src`
+        using var mutex = new Mutex(true, "MyCompany.DeviceGui", out bool createdNew);
+        if (!createdNew)
+        {
+            // optionally: bring the existing window to the front, then exit
+            return;
+        }
+        app.Run(new MainWindow());
+      ` }
+    ],
+    tip: "Being able to explain when to use Local\\ and when to use Global\\ shows you understand sessions."
+  },
+
+  /* =================== General C# =================== */
+  {
+    id: "gc-throw", topic: "General C#",
+    q: "Inside a `catch (Exception ex)` block, what is the difference between `throw;` and `throw ex;`?",
+    options: [
+      "`throw;` keeps the original stack trace; `throw ex;` resets it to the current line",
+      "There is no difference",
+      "`throw ex;` is required to rethrow",
+      "`throw;` swallows the exception"
+    ],
+    answer: 0,
+    explain: [
+      "The stack trace tells you where the error really happened. `throw ex;` restarts it at the catch block, so you lose the original location, which makes debugging much harder.",
+      { label: "C#", src: src`
+        try { DoWork(); }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Work failed");
+            throw;                                        // rethrow, keeping the stack trace
+        }
+
+        // Or wrap it with more context, keeping the original as InnerException
+        catch (IOException ex)
+        {
+            throw new DeviceException("Could not read device config", ex);
+        }
+      ` }
+    ],
+    tip: "Also mention: catch only what you can handle, and don't swallow exceptions silently."
+  },
+  {
+    id: "gc-catch-order", topic: "General C#",
+    q: "What happens with this code?",
+    given: src`
+      try { File.ReadAllText(path); }
+      catch (Exception ex)   { Log(ex); }
+      catch (IOException ex) { Retry(); }
+    `,
+    options: [
+      "Compile error: the IOException block can never be reached",
+      "IOException goes to the second block",
+      "Both blocks run",
+      "It compiles, but Retry is ignored at run time"
+    ],
+    answer: 0,
+    explain: [
+      "Catch blocks are checked **top to bottom**, and the first match wins. `IOException` is a kind of `Exception`, so the first block would catch it every time. The compiler detects the unreachable block (error CS0160).",
+      "Order catch blocks from **most specific to most general**:",
+      { label: "C#", src: src`
+        try { File.ReadAllText(path); }
+        catch (FileNotFoundException) { UseDefaults(); }         // most specific
+        catch (IOException ex)        { Retry(); }
+        catch (Exception ex)          { Log(ex); throw; }        // most general, last
+      ` }
+    ],
+    tip: "Exception filters are handy too: `catch (IOException ex) when (attempt < 3)`."
+  },
+  {
+    id: "gc-finally", topic: "General C#",
+    q: "What does this print?",
+    given: src`
+      int F()
+      {
+          try { return 1; }
+          finally { Console.Write("F"); }
+      }
+
+      Console.Write(F());
+    `,
+    options: ["`F1`", "`1F`", "`1`", "`F`"],
+    answer: 0,
+    explain: [
+      "`finally` **always runs** when control leaves the `try` block, whether it leaves through a normal finish, a `return` or an exception. Here the `return 1` value is prepared, then `finally` prints `F`, then the method returns 1 and the caller prints it.",
+      "That's why cleanup goes in `finally`, and why `using` (which compiles into try/finally) is reliable."
+    ],
+    tip: "The rare cases where finally doesn't run: the process is killed, `Environment.FailFast` is called, or the program hits a stack overflow."
+  },
+  {
+    id: "gc-override-new", topic: "General C#",
+    q: "What does this print?",
+    given: src`
+      class Animal
+      {
+          public virtual string Speak() => "...";
+          public string Name() => "Animal";
+      }
+      class Dog : Animal
+      {
+          public override string Speak() => "Woof";
+          public new string Name() => "Dog";
+      }
+
+      Animal a = new Dog();
+      Console.WriteLine(a.Speak() + " " + a.Name());
+    `,
+    options: ["`Woof Animal`", "`Woof Dog`", "`... Animal`", "`... Dog`"],
+    answer: 0,
+    explain: [
+      "`override` replaces a **virtual** method. The call is decided at run time by the real object type (a `Dog`), so `Speak()` returns `Woof`. That's **polymorphism**.",
+      "`new` only **hides** the base method. The call is decided at compile time by the variable type (`Animal`), so `Name()` returns `Animal`. Called through a `Dog` variable it would return `Dog`.",
+      "Method hiding is usually a code smell. If you want different behavior in subclasses, use `virtual` / `override`."
+    ],
+    tip: "This is the same \"declared type versus runtime type\" idea as `==` versus `Equals`."
+  },
+  {
+    id: "gc-interface-abstract", topic: "General C#",
+    q: "Which statement about interfaces and abstract classes is TRUE?",
+    options: [
+      "A class can implement many interfaces but inherit from only one class",
+      "Interfaces can have instance fields",
+      "Abstract classes can be instantiated with `new`",
+      "An interface can inherit from an abstract class"
+    ],
+    answer: 0,
+    explain: [
+      "An **interface** is a contract: what something can do. It has no instance state, and a class can implement many (`IDisposable`, `IComparable`...). Since C# 8, interfaces can also contain default method implementations.",
+      "An **abstract class** is a partial base class. It can hold fields, constructors and shared code, plus `abstract` methods subclasses must implement. A class inherits only one.",
+      { label: "C#", src: src`
+        public interface IDeviceReader { Task<Reading> ReadAsync(); }     // the contract
+
+        public abstract class DeviceBase : IDeviceReader                  // shared code + state
+        {
+            protected readonly ILogger Logger;
+            protected DeviceBase(ILogger logger) => Logger = logger;
+            public abstract Task<Reading> ReadAsync();                    // each device does it differently
+        }
+
+        public class UsbScale : DeviceBase { /* ... */ }
+      ` }
+    ],
+    tip: "Rule of thumb: use an interface for \"can do\" (a capability, and for DI and mocking), and an abstract class for \"is a\" with real shared code."
+  },
+  {
+    id: "gc-out", topic: "General C#",
+    q: "Which statement about `out` parameters is TRUE?",
+    options: [
+      "The method must assign it before returning, and the caller doesn't need to initialize it",
+      "The caller must initialize it first",
+      "It's passed by value",
+      "It can only be used with value types"
+    ],
+    answer: 0,
+    explain: [
+      { label: "ref / out / in", src: src`
+        ref   by reference; caller must initialize it; method may read and change it
+        out   by reference; method MUST assign it; used for extra return values
+        in    by reference; read-only (avoids copying big structs)
+      ` },
+      { label: "C#", src: src`
+        if (int.TryParse(text, out int value))       // the classic out example
+            Console.WriteLine(value);
+
+        bool TryGetDevice(string id, out Device? device) { /* must assign device */ }
+      ` }
+    ],
+    tip: "The `TryXxx(out ...)` pattern is the classic use: return success as a bool and the result through `out`."
+  },
+  {
+    id: "gc-static-class", topic: "General C#",
+    q: "Which is TRUE about a `static class`?",
+    options: [
+      "It can't be instantiated or inherited, and can only contain static members",
+      "It's created once per thread",
+      "It can implement interfaces",
+      "Its fields are reset on every call"
+    ],
+    answer: 0,
+    explain: [
+      "A static class is just a container for static members: helper methods, constants, extension methods (which must live in a static class). Its static state lives for the whole application.",
+      "Be careful with static **mutable state** in a service. It's shared by every thread, so it needs locking, and it makes unit testing hard. For shared services, prefer a singleton registered in dependency injection."
+    ],
+    tip: "If asked \"static class vs singleton\": a singleton is a real object that can implement interfaces, be injected and be mocked; a static class can't."
+  },
+  {
+    id: "gc-using", topic: "General C#",
+    q: "What does `using var port = new SerialPort(\"COM3\");` guarantee?",
+    options: [
+      "`port.Dispose()` runs when the enclosing scope ends, even if an exception is thrown",
+      "The port is opened automatically",
+      "The garbage collector frees the port immediately",
+      "The port can only be used on one thread"
+    ],
+    answer: 0,
+    explain: [
+      "`using` compiles to a `try/finally` that calls `Dispose()`. That **deterministically** releases things the garbage collector doesn't manage well: file handles, serial ports, pipes, database connections, sockets.",
+      { label: "C#", src: src`
+        using (var port = new SerialPort("COM3"))     // classic block form
+        {
+            port.Open();
+            port.WriteLine("PING");
+        }                                             // Dispose() here
+
+        // Roughly what the compiler generates
+        var p = new SerialPort("COM3");
+        try { p.Open(); p.WriteLine("PING"); }
+        finally { p.Dispose(); }
+      ` },
+      "In a device service this really matters: a port or pipe that isn't disposed stays locked, and the next connection attempt fails with \"access denied\" or \"port in use\"."
+    ],
+    tip: "For async disposal (streams, pipes), use `await using`."
+  },
+  {
+    id: "gc-solid-dip", topic: "General C#",
+    q: "Inside your service class you wrote `var repo = new SqlDeviceRepository();`. Which SOLID principle says to inject an `IDeviceRepository` instead?",
+    options: [
+      "Dependency inversion (the D)",
+      "Single responsibility (the S)",
+      "Liskov substitution (the L)",
+      "Open/closed (the O)"
+    ],
+    answer: 0,
+    explain: [
+      { label: "SOLID in one line each", src: src`
+        S  Single responsibility   a class has one reason to change
+        O  Open/closed             add behavior by extension (new classes), not by editing old code
+        L  Liskov substitution     a subclass must work wherever its base class is expected
+        I  Interface segregation   many small interfaces instead of one huge one
+        D  Dependency inversion    depend on abstractions (interfaces), not concrete classes
+      ` },
+      "With `new SqlDeviceRepository()` inside, the service is welded to SQL and can't be unit tested without a database. With dependency inversion, it takes an `IDeviceRepository` in its constructor, DI supplies the real one, and a test supplies a fake.",
+      { label: "C#", src: src`
+        public class DeviceWorker(IDeviceRepository repo, ILogger<DeviceWorker> logger) : BackgroundService
+        {
+            // uses repo; doesn't know or care whether it's SQL, a file or a test fake
+        }
+
+        builder.Services.AddSingleton<IDeviceRepository, SqlDeviceRepository>();
+      ` }
+    ],
+    tip: "Give one SOLID example from your own code. It's much more convincing than reciting the five definitions."
+  },
+
+  /* =================== Write code =================== */
+  {
+    id: "code-worker", topic: "Windows Services", type: "code", lang: "C#",
+    q: "Write a Worker Service that runs as a Windows service, checks the devices every 30 seconds, stops cleanly when the service is stopped, and makes Windows restart it if it crashes.",
+    solution: src`
+      // Program.cs
+      var builder = Host.CreateApplicationBuilder(args);
+      builder.Services.AddWindowsService(o => o.ServiceName = "My Device Service");
+      builder.Services.AddHostedService<DeviceWorker>();
+      builder.Build().Run();
+
+      // DeviceWorker.cs
+      public sealed class DeviceWorker(ILogger<DeviceWorker> logger) : BackgroundService
+      {
+          protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+          {
+              logger.LogInformation("Service started");
+              using var timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
+
+              try
+              {
+                  do
+                  {
+                      await CheckDevicesAsync(stoppingToken);
+                  }
+                  while (await timer.WaitForNextTickAsync(stoppingToken));
+              }
+              catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+              {
+                  logger.LogInformation("Service stopping");     // normal stop
+              }
+              catch (Exception ex)
+              {
+                  logger.LogCritical(ex, "Service crashed");
+                  Environment.Exit(1);   // non-zero exit so the SCM recovery actions restart us
+              }
+          }
+
+          private Task CheckDevicesAsync(CancellationToken ct)
+          {
+              // talk to the devices here, passing ct to every async call
+              return Task.CompletedTask;
+          }
+      }
+    `,
+    explain: [
+      "`AddWindowsService` connects the host to the SCM. When the service is stopped, the host cancels `stoppingToken`, so passing that token everywhere gives you a clean shutdown.",
+      "`PeriodicTimer` (.NET 6+) is the modern async timer. Unlike `Task.Delay` in a loop, it keeps a steady rhythm and never runs two checks at the same time. `WaitForNextTickAsync` returns false or throws when the token is cancelled, which ends the loop.",
+      "The `when (stoppingToken.IsCancellationRequested)` filter separates a **normal stop** from a real error. A real error is logged and the process exits with code 1, so the recovery actions configured with `sc.exe failure` restart the service."
+    ],
+    tip: "If your project was ServiceBase-based, also be ready to describe OnStart (start a background task and return quickly) and OnStop (cancel and wait)."
+  },
+  {
+    id: "code-pipe-server", topic: "Service ↔ GUI Communication", type: "code", lang: "C#",
+    q: "In the service, write a named pipe server that accepts several GUI clients, reads JSON requests (one per line) and writes a JSON response for each.",
+    solution: src`
+      public record Request(string Type, string? Data);
+      public record Response(bool Ok, string? Message);
+
+      public sealed class PipeServer(ILogger<PipeServer> logger) : BackgroundService
+      {
+          private const string PipeName = "MyCompany.DeviceService";
+
+          protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+          {
+              while (!stoppingToken.IsCancellationRequested)
+              {
+                  var pipe = CreatePipe();
+                  try
+                  {
+                      await pipe.WaitForConnectionAsync(stoppingToken);
+                  }
+                  catch (OperationCanceledException)
+                  {
+                      await pipe.DisposeAsync();
+                      break;                                   // service is stopping
+                  }
+                  _ = HandleClientAsync(pipe, stoppingToken);  // serve this client, accept the next
+              }
+          }
+
+          private static NamedPipeServerStream CreatePipe()
+          {
+              var security = new PipeSecurity();
+              security.AddAccessRule(new PipeAccessRule(
+                  new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null),
+                  PipeAccessRights.ReadWrite, AccessControlType.Allow));
+              security.AddAccessRule(new PipeAccessRule(
+                  new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+                  PipeAccessRights.FullControl, AccessControlType.Allow));
+
+              return NamedPipeServerStreamAcl.Create(
+                  PipeName, PipeDirection.InOut,
+                  NamedPipeServerStream.MaxAllowedServerInstances,
+                  PipeTransmissionMode.Byte, PipeOptions.Asynchronous,
+                  0, 0, security);
+          }
+
+          private async Task HandleClientAsync(NamedPipeServerStream pipe, CancellationToken ct)
+          {
+              await using (pipe)
+              {
+                  try
+                  {
+                      using var reader = new StreamReader(pipe, leaveOpen: true);
+                      using var writer = new StreamWriter(pipe, leaveOpen: true) { AutoFlush = true };
+
+                      while (await reader.ReadLineAsync(ct) is { } line)   // null = client disconnected
+                      {
+                          var request = JsonSerializer.Deserialize<Request>(line);
+                          var response = Handle(request);
+                          await writer.WriteLineAsync(JsonSerializer.Serialize(response));
+                      }
+                  }
+                  catch (IOException) { /* client vanished: normal */ }
+                  catch (OperationCanceledException) { /* service stopping */ }
+                  catch (Exception ex) { logger.LogError(ex, "Pipe client failed"); }
+              }
+          }
+
+          private static Response Handle(Request? request) => request?.Type switch
+          {
+              "ping"      => new Response(true, "pong"),
+              "getStatus" => new Response(true, "All devices online"),
+              _           => new Response(false, "Unknown command")    // only known commands
+          };
+      }
+    `,
+    explain: [
+      "**Accept loop:** each `NamedPipeServerStream` is one connection. The loop waits for a client, hands it to `HandleClientAsync` without awaiting it, and immediately creates the next instance for the next client.",
+      "**Security:** the ACL lets normal logged-in users read and write. Without it, non-admin GUIs get access denied. `Handle` only accepts known commands.",
+      "**Framing:** one JSON object per line, so `ReadLineAsync` returns exactly one message. `ReadLineAsync` returning `null` means the client closed the pipe.",
+      "**Robustness:** every client is wrapped in try/catch, so one bad client can't crash the service, and `await using` disposes the pipe."
+    ],
+    tip: "In an interview, describing this out loud (accept loop, one task per client, JSON lines, ACL, only known commands) is enough. Nobody expects you to recite the ACL code."
+  },
+  {
+    id: "code-pipe-client", topic: "GUI & Threading", type: "code", lang: "C#",
+    q: "In the WPF GUI, write the code that connects to the service's pipe, shows incoming status messages, and automatically reconnects if the service restarts. The window must never freeze.",
+    solution: src`
+      public record StatusUpdate(string Message);
+
+      public partial class MainWindow : Window
+      {
+          private readonly CancellationTokenSource _cts = new();
+
+          private async void Window_Loaded(object sender, RoutedEventArgs e)
+          {
+              try { await RunPipeClientAsync(_cts.Token); }
+              catch (OperationCanceledException) { /* window closing */ }
+          }
+
+          private async Task RunPipeClientAsync(CancellationToken ct)
+          {
+              while (!ct.IsCancellationRequested)
+              {
+                  try
+                  {
+                      await using var pipe = new NamedPipeClientStream(
+                          ".", "MyCompany.DeviceService", PipeDirection.InOut, PipeOptions.Asynchronous);
+
+                      await pipe.ConnectAsync(5000, ct);       // timeout: never hang forever
+                      StatusText.Text = "Connected";
+
+                      using var reader = new StreamReader(pipe);
+                      while (await reader.ReadLineAsync(ct) is { } line)
+                      {
+                          var update = JsonSerializer.Deserialize<StatusUpdate>(line);
+                          StatusText.Text = update?.Message;     // safe: we're back on the UI thread
+                      }
+                      StatusText.Text = "Service disconnected";
+                  }
+                  catch (TimeoutException) { StatusText.Text = "Service not running. Retrying..."; }
+                  catch (IOException)      { StatusText.Text = "Connection lost. Retrying..."; }
+
+                  await Task.Delay(TimeSpan.FromSeconds(3), ct);   // wait, then reconnect
+              }
+          }
+
+          protected override void OnClosed(EventArgs e)
+          {
+              _cts.Cancel();                                       // stop the loop
+              base.OnClosed(e);
+          }
+      }
+    `,
+    explain: [
+      "**No freezing:** everything is async (`ConnectAsync` with a 5-second timeout, `ReadLineAsync`), so the UI thread is free while waiting.",
+      "**Safe UI updates:** the loop starts from `Window_Loaded` on the UI thread. Each `await` captures the UI SynchronizationContext, so the code after it runs on the UI thread, and setting `StatusText.Text` is safe without `Dispatcher.Invoke`. Adding `ConfigureAwait(false)` here would break that.",
+      "**Reconnect:** a timeout (service not running) or an IOException (pipe broken because the service restarted) is caught, shown, and followed by a retry after 3 seconds. After reconnecting, the GUI would normally ask for a full status snapshot.",
+      "**Clean exit:** closing the window cancels the token, which ends the loop."
+    ],
+    tip: "The async-void event handler with a try/catch around everything is exactly the pattern from the async void discussion."
+  },
+
+  /* =================== Interview talk =================== */
+  {
+    id: "talk-intro", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"Tell me about yourself.\" (About 90 seconds.)",
+    solution: [
+      "\"I'm a C#/.NET developer with [X years] of experience. Most recently at [company] I worked on [product]: a Windows service running on [kind of devices] that [main job, e.g. talks to the hardware, collects data and syncs it with our servers], together with a [WPF/WinForms] desktop app that lets users see the status and control it.\"",
+      "\"My work covered [the service's background processing / the communication between the service and the GUI / installation and updates / ...]. Something I'm proud of is [one concrete result, e.g. making the GUI reconnect automatically when the service restarted, which removed most of the 'app shows disconnected' support tickets].\"",
+      "\"I'm now looking for a role where I can [keep growing in .NET / work on ... ], which is why this position caught my interest.\""
+    ],
+    explain: [
+      "Structure: **present** (who you are), then **past** (one highlight with a result), then **future** (why this job). Don't walk through your CV line by line; they've read it.",
+      "Fill in the [brackets] with your real details and say it out loud two or three times tonight. It should sound natural, not memorised."
+    ],
+    tip: "End with why this job. It hands the conversation back to them on a positive note."
+  },
+  {
+    id: "talk-architecture", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"Walk me through the architecture of the service and the GUI app.\"",
+    solution: [
+      "\"Each device had two processes. The Windows service starts at boot, runs as [LocalSystem / a service account], and does the real work: [e.g. polls the hardware, processes the data, sends it to our backend]. It runs even when nobody is logged in.\"",
+      "\"The GUI is a [WPF/WinForms] app in the user's session, started at login [and living in the system tray]. It shows the current status and lets the user [run actions / change settings].\"",
+      "\"They talked over [named pipes / WCF / a local HTTP API]. The GUI sent requests like [getStatus, restartDevice, updateSettings] and got replies, and the service also pushed events when something changed, like a device disconnecting. Messages were [JSON, one per line / WCF data contracts].\"",
+      "\"The service never depended on the GUI. If the GUI was closed, the service kept working; when it reconnected, it first asked for the full current state.\""
+    ],
+    explain: [
+      "Draw it while you talk: **[device or hardware] ↔ [Windows service, session 0] ⇄ pipe ⇄ [GUI, user session]**, plus the backend server if there was one.",
+      "Expect follow-ups: why two processes? why that IPC method? what if one side goes down? how was it secured? how was it deployed and updated? The other Interview Talk cards cover each one."
+    ],
+    tip: "Say \"I\" for your own parts and \"we\" for the team's. Interviewers want to know what you personally did."
+  },
+  {
+    id: "talk-why-split", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"Why was it split into a service and a separate GUI app instead of one application?\"",
+    solution: [
+      "\"First, availability: a service starts at boot and runs without anyone logged in, and Windows can restart it automatically if it fails. The important work never depends on someone having the app open.\"",
+      "\"Second, Windows itself: since Vista, services run in session 0, isolated from the user's desktop, so a service can't show UI. Any UI has to be a separate process in the user's session.\"",
+      "\"Third, privileges and safety: the service runs with the rights it needs for [hardware access / protected folders], while the GUI runs as a normal user. Keeping the privileged part small and without UI is more secure.\"",
+      "\"And reliability: if the GUI crashes or the user closes it, the service keeps running.\""
+    ],
+    explain: [
+      "Four clear reasons (availability, session 0, privileges, reliability) show you understand the design, not just the code you wrote."
+    ],
+    tip: "If you didn't make the decision, say so honestly: \"That was decided before I joined, but the reasons are...\""
+  },
+  {
+    id: "talk-failures", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"What happened if the service restarted while the GUI was connected, or if the GUI wasn't running?\"",
+    solution: [
+      "\"The GUI noticed the broken connection, either an IOException or the read returning nothing, showed 'disconnected', and kept retrying every few seconds with a timeout, so the window never froze.\"",
+      "\"After reconnecting, the GUI requested the full current state, so it didn't matter what it missed while it was disconnected.\"",
+      "\"On the service side, the GUI was optional. If no client was connected, the service just kept working and kept its latest state; it never blocked waiting for a GUI.\"",
+      "\"[If true:] Commands were safe to repeat, so if the GUI wasn't sure whether a command arrived, it could just send it again.\""
+    ],
+    explain: [
+      "This question tests whether you think about failure, which separates juniors from mid and senior developers. Key ideas: **detect, retry with a timeout, resync with a snapshot, never block**."
+    ],
+    tip: "If your real system didn't handle this well, say what you'd improve. That honesty is valued."
+  },
+  {
+    id: "talk-bug", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"Tell me about the hardest bug you fixed.\" (Answer with STAR: Situation, Task, Action, Result.)",
+    solution: [
+      "Example. Use your own real bug; this shows the shape:",
+      "**Situation:** \"After a release, on some devices the GUI showed 'cannot connect to service', but only for normal users. Admins were fine.\"",
+      "**Task:** \"I was asked to find and fix it quickly, because customers were calling support.\"",
+      "**Action:** \"I reproduced it with a non-admin test account and got an UnauthorizedAccessException when connecting to the pipe. The service runs as LocalSystem, and a pipe it creates with default security only gives other users read access. I created the pipe with an explicit security rule giving authenticated users read/write, and added logging for failed connections.\"",
+      "**Result:** \"It worked for all users after the next update. We also added a non-admin test to our release checklist so it couldn't happen again.\""
+    ],
+    explain: [
+      "Spend most of the time on **Action**: how you investigated (reproduce, logs, narrow it down), not just the fix. End with the **result** and what you changed so it wouldn't happen again.",
+      "Typical real bugs in service + GUI systems you might recognise: a relative path failing because the service's current directory is System32; error 1053 because the start took too long; a pipe ACL blocking normal users; a GUI freezing because of a blocking call on the UI thread; a memory leak from event handlers never unsubscribed; a COM or serial port left open because it wasn't disposed."
+    ],
+    tip: "Prepare two bug stories. The second one comes in handy for \"tell me about a mistake you made\"."
+  },
+  {
+    id: "talk-deploy", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"How was the service installed and updated on the devices?\"",
+    solution: [
+      "\"It was installed with [an MSI built with WiX / Inno Setup / a PowerShell script]. The installer copied the files, registered the service with the SCM, set it to start automatically and configured recovery actions to restart it on failure.\"",
+      "\"Updating meant stopping the service, replacing the files and starting it again. [We rolled updates out through SCCM / Intune / our own updater / manual installs.]\"",
+      "\"The GUI was registered to start when users logged in.\"",
+      "\"Configuration lived in [appsettings.json next to the exe / C:\\ProgramData / the registry], not in a user folder, because the service runs under its own account.\""
+    ],
+    explain: [
+      "If someone else handled deployment, say so, then explain what you know about it. \"I wasn't responsible for the installer, but it worked like this...\" is a perfectly good answer."
+    ],
+    tip: "Mentioning recovery actions and the ProgramData location shows you understand how services behave in production."
+  },
+  {
+    id: "talk-logging", topic: "Interview Talk", type: "code", lang: "Talk",
+    q: "\"How did you log and debug the service?\"",
+    solution: [
+      "\"A service has no console, so logging was essential. We logged to [files with Serilog / NLog / the Windows Event Log / a central system like Seq or Application Insights]: every important step and every exception, with [the device ID / a correlation ID] so we could follow one operation.\"",
+      "\"During development I ran the service as a normal console app from Visual Studio, or attached the debugger to the installed service process, running Visual Studio as administrator.\"",
+      "\"For problems on customer devices we [collected the log files / used remote access / checked Event Viewer for crashes].\""
+    ],
+    explain: [
+      "Then give **one concrete example** where the logs helped you find a problem quickly. Stories beat lists."
+    ],
+    tip: "A good extra point: \"we used log levels, so we could switch to Debug on one device without flooding everything\"."
+  }
+];
+
+/* ------------------------------------------------------------------------ */
+
+const STORAGE_KEY = "winsvc-quiz-state-v1";
+const $ = (id) => document.getElementById(id);
+const motion = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+const byId = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+const TOPICS = [...new Set(QUESTIONS.map(q => q.topic))];
+const isCode = (q) => q.type === "code";
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function freshState() {
+  const opt = {};
+  QUESTIONS.forEach(q => { if (!isCode(q)) opt[q.id] = shuffle(q.options.map((_, i) => i)); });
+  return {
+    order: QUESTIONS.map(q => q.id), opt,
+    answers: {}, drafts: {}, shown: {}, grades: {},
+    revealed: false, onlyWrong: false, filter: "all"
+  };
+}
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!s || !Array.isArray(s.order)) return null;
+    const valid = s.order.length === QUESTIONS.length && s.order.every(id => byId[id]) &&
+      QUESTIONS.every(q => isCode(q) || (Array.isArray(s.opt?.[q.id]) && s.opt[q.id].length === q.options.length));
+    if (!valid) return null;
+    const base = freshState();
+    return { ...base, ...s, filter: TOPICS.includes(s.filter) || s.filter === "code" ? s.filter : "all" };
+  } catch { return null; }
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* storage unavailable */ }
+}
+
+let state = loadState() || freshState();
+
+/* ---------- Question status ---------- */
+const isShown = (q) => state.revealed || !!state.shown[q.id];
+const hasDraft = (q) => !!(state.drafts[q.id] || "").trim();
+const isDone = (q) => isShown(q) || (isCode(q) ? hasDraft(q) : state.answers[q.id] !== undefined);
+const isCorrect = (q) => isCode(q) ? state.grades[q.id] === "yes" : state.answers[q.id] === q.answer;
+const isChecked = (q) => isShown(q) && (!isCode(q) || !!state.grades[q.id]);
+const matchesFilter = (q) => state.filter === "all" || (state.filter === "code" ? isCode(q) : q.topic === state.filter);
+
+/* ---------- Small DOM helpers ---------- */
+/* Render `inline code` and **bold** safely (no innerHTML). */
+function rich(el, text) {
+  text.split(/(`[^`]*`|\*\*[^*]+\*\*)/).forEach(part => {
+    if (!part) return;
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 1) {
+      const c = document.createElement("code"); c.textContent = part.slice(1, -1); el.appendChild(c);
+    } else if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+      const b = document.createElement("strong"); b.textContent = part.slice(2, -2); el.appendChild(b);
+    } else el.appendChild(document.createTextNode(part));
+  });
+  return el;
+}
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) rich(e, text);
+  return e;
+}
+function codeBlock(text, label) {
+  const wrap = el("div", "codeblock");
+  if (label) wrap.appendChild(el("div", "codelabel", label));
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.textContent = text;
+  pre.appendChild(code);
+  wrap.appendChild(pre);
+  return wrap;
+}
+
+/* ---------- Cards ---------- */
+function verdictFor(q) {
+  if (isCode(q)) {
+    const g = state.grades[q.id];
+    return g === "yes" ? ["ok", "Got it"] : g === "no" ? ["bad", "Not quite"] : ["muted", "Grade yourself"];
+  }
+  if (state.answers[q.id] === undefined) return ["muted", "Not answered"];
+  return isCorrect(q) ? ["ok", "Correct"] : ["bad", "Incorrect"];
+}
+
+function renderExplain(q) {
+  const box = el("div", "explain");
+  if (isCode(q) && q.lang === "Talk") {
+    box.append(el("h4", null, "Example answer"));
+    q.solution.forEach(p => box.append(el("p", null, p)));
+    box.append(el("h4", null, "Why this works"));
+  } else if (isCode(q)) {
+    box.append(el("h4", null, "Model answer"), codeBlock(q.solution, q.lang));
+    box.append(el("h4", null, "How it works"));
+  } else {
+    box.append(el("h4", null, "Explanation"));
+  }
+  q.explain.forEach(item => box.append(typeof item === "string" ? el("p", null, item) : codeBlock(item.src, item.label)));
+  if (q.tip) {
+    const tip = el("div", "tip");
+    tip.append(el("strong", null, "Remember"), el("p", null, q.tip));
+    box.append(tip);
+  }
+  return box;
+}
+
+function showOne(id) {
+  state.shown[id] = true;
+  saveState();
+  refreshCard(id);
+  updateProgress();
+  if (state.revealed) renderResults();
+}
+
+function renderCard(id) {
+  const q = byId[id];
+  const idx = state.order.indexOf(id);
+  const shown = isShown(q);
+  const card = el("article", "card");
+  card.id = "card-" + id;
+  card.hidden = !matchesFilter(q);
+  if (shown) card.classList.add("revealed", isCorrect(q) ? "is-correct" : "is-wrong");
+
+  const meta = el("div", "meta");
+  meta.append(el("span", "num", `Q${idx + 1}`), el("span", "chip", q.topic));
+  if (isCode(q)) meta.append(el("span", "chip kind", q.lang === "Talk" ? "Say it out loud" : q.lang === "SQL" ? "Write SQL" : "Write code"));
+  if (shown) {
+    const [cls, text] = verdictFor(q);
+    meta.append(el("span", "verdict " + cls, text));
+  }
+  card.append(meta, el("p", "qtext", q.q));
+  if (q.given) card.appendChild(codeBlock(q.given, q.givenLabel || q.lang || "C#"));
+
+  const actions = el("div", "card-actions");
+
+  if (isCode(q)) {
+    const draft = state.drafts[id] || "";
+    if (shown && !draft.trim()) {
+      card.appendChild(el("p", "no-answer", "You didn't write an answer for this one."));
+    } else {
+      const label = el("label", "answer-label", "Your answer");
+      label.htmlFor = "answer-" + id;
+      const ta = document.createElement("textarea");
+      ta.id = "answer-" + id;
+      ta.className = "answer";
+      ta.spellcheck = false;
+      ta.rows = 9;
+      ta.placeholder = q.lang === "Talk" ? "Write what you would say (bullet points are fine)..." : q.lang === "SQL" ? "Write your SQL here..." : "Write your C# here...";
+      ta.value = draft;
+      ta.readOnly = shown;
+      ta.addEventListener("input", () => { state.drafts[id] = ta.value; saveState(); updateProgress(); });
+      card.append(label, ta);
+    }
+    if (!shown) {
+      const btn = el("button", null, q.lang === "Talk" ? "Show example answer" : "Show model answer");
+      btn.addEventListener("click", () => showOne(id));
+      actions.append(btn, el("span", "note", "You'll grade yourself after comparing."));
+      card.appendChild(actions);
+    }
+  } else {
+    const chosen = state.answers[id];
+    const opts = el("div", "options");
+    opts.setAttribute("role", "radiogroup");
+    const btn = el("button", null, chosen === undefined ? "Show answer" : "Check answer");
+    state.opt[id].forEach(oi => {
+      const label = el("label", "opt");
+      const input = document.createElement("input");
+      input.type = "radio"; input.name = id; input.value = oi;
+      input.checked = chosen === oi;
+      input.disabled = shown;
+      input.addEventListener("change", () => {
+        state.answers[id] = oi;
+        saveState();
+        btn.textContent = "Check answer";
+        updateProgress();
+      });
+      const text = el("span", "opt-text");
+      text.appendChild(el("span", "opt-label", q.options[oi]));
+      if (shown) {
+        if (oi === q.answer) { label.classList.add("correct"); text.appendChild(el("span", "tag", "✓ Correct answer")); }
+        else if (oi === chosen) { label.classList.add("wrong"); text.appendChild(el("span", "tag", "✗ Your answer")); }
+      }
+      label.append(input, text);
+      opts.appendChild(label);
+    });
+    card.appendChild(opts);
+    if (!shown) {
+      btn.addEventListener("click", () => showOne(id));
+      actions.appendChild(btn);
+      card.appendChild(actions);
+    }
+  }
+
+  if (shown) {
+    card.appendChild(renderExplain(q));
+    if (isCode(q)) {
+      const grade = el("div", "grade");
+      grade.appendChild(el("span", "q", "How did you do?"));
+      [["yes", "✓ I got it"], ["no", "✗ Not quite"]].forEach(([value, text]) => {
+        const b = el("button", value, text);
+        b.setAttribute("aria-pressed", String(state.grades[id] === value));
+        b.addEventListener("click", () => {
+          state.grades[id] = value;
+          saveState();
+          refreshCard(id);
+          $("card-" + id).querySelector(`.grade .${value}`)?.focus({ preventScroll: true });
+          updateProgress();
+          if (state.revealed) renderResults();
+        });
+        grade.appendChild(b);
+      });
+      card.appendChild(grade);
+    }
+  }
+  return card;
+}
+
+function refreshCard(id) {
+  const old = $("card-" + id);
+  if (old) old.replaceWith(renderCard(id));
+}
+
+function renderQuiz() {
+  const root = $("quiz");
+  root.textContent = "";
+  root.classList.toggle("only-wrong", state.revealed && state.onlyWrong);
+  state.order.forEach(id => root.appendChild(renderCard(id)));
+  updateEmpty();
+}
+
+function updateEmpty() {
+  const anyVisible = state.order.some(id => {
+    const q = byId[id];
+    return matchesFilter(q) && !(state.revealed && state.onlyWrong && isCorrect(q));
+  });
+  $("empty").hidden = anyVisible;
+}
+
+/* ---------- Filters ---------- */
+function renderFilters() {
+  const bar = $("filters");
+  bar.textContent = "";
+  const items = [["all", "All", QUESTIONS.length]]
+    .concat(TOPICS.map(t => [t, t, QUESTIONS.filter(q => q.topic === t).length]))
+    .concat([["code", "Open answers", QUESTIONS.filter(isCode).length]]);
+  items.forEach(([key, label, n]) => {
+    const b = el("button", "filter", label);
+    b.appendChild(el("span", "count", " " + n));
+    b.setAttribute("aria-pressed", String(state.filter === key));
+    b.addEventListener("click", () => setFilter(key));
+    bar.appendChild(b);
+  });
+}
+
+function setFilter(key) {
+  state.filter = key;
+  saveState();
+  renderFilters();
+  state.order.forEach(id => { const c = $("card-" + id); if (c) c.hidden = !matchesFilter(byId[id]); });
+  updateEmpty();
+}
+
+/* ---------- Progress bar & results ---------- */
+function updateProgress() {
+  const total = QUESTIONS.length;
+  const done = QUESTIONS.filter(isDone).length;
+  const checked = QUESTIONS.filter(isChecked);
+  const right = checked.filter(isCorrect).length;
+
+  const pt = $("progressText");
+  pt.textContent = "";
+  pt.append(`${done} / ${total} `, el("small", null, "done"));
+  if (checked.length && !state.revealed) pt.append(el("small", null, ` · ${right} of ${checked.length} checked correct`));
+  $("fill").style.width = (done / total * 100) + "%";
+
+  const btn = $("revealBtn");
+  const left = total - done;
+  if (state.revealed) {
+    btn.textContent = "Retake quiz";
+    btn.disabled = false;
+    $("hint").hidden = true;
+  } else {
+    btn.textContent = "Reveal all answers";
+    btn.disabled = left > 0;
+    $("hint").hidden = left === 0;
+    $("hintText").textContent = `Answer ${left} more question${left === 1 ? "" : "s"} to unlock all answers, or check any question on its own.`;
+  }
+}
+
+function renderResults() {
+  const box = $("results");
+  box.hidden = !state.revealed;
+  box.textContent = "";
+  if (!state.revealed) return;
+
+  const total = QUESTIONS.length;
+  const right = QUESTIONS.filter(isCorrect).length;
+  const pct = Math.round(right / total * 100);
+  const msg = pct >= 90 ? "Excellent! You're ready for this interview."
+    : pct >= 70 ? "Solid work. Read the explanations for the ones you missed."
+    : pct >= 50 ? "Decent start. The explanations below walk through the tricky parts."
+    : "Plenty to review. Work through the explanations, then try again.";
+
+  const score = el("div", "score");
+  score.append(el("span", "big", `${right} / ${total}`), el("span", "pct", `${pct}%`), el("p", "msg", msg));
+  box.appendChild(score);
+
+  const mcq = QUESTIONS.filter(q => !isCode(q));
+  const code = QUESTIONS.filter(isCode);
+  box.appendChild(el("p", "split",
+    `Multiple choice: ${mcq.filter(isCorrect).length} / ${mcq.length} · Open answers (self-graded): ${code.filter(isCorrect).length} / ${code.length}`));
+
+  const ungraded = code.filter(q => !state.grades[q.id]);
+  if (ungraded.length) {
+    const p = el("div", "pending", `${ungraded.length} open question${ungraded.length === 1 ? " is" : "s are"} waiting for your self-grade.`);
+    const go = el("button", "link", "Grade the next one");
+    go.addEventListener("click", () => jumpTo(ungraded[0].id));
+    p.appendChild(go);
+    box.appendChild(p);
+  }
+
+  const topics = el("div", "topics");
+  TOPICS.forEach(t => {
+    const qs = QUESTIONS.filter(q => q.topic === t);
+    const ok = qs.filter(isCorrect).length;
+    const row = el("div", "topic");
+    const track = el("div", "t");
+    const fill = el("div", "f");
+    fill.style.width = (ok / qs.length * 100) + "%";
+    track.appendChild(fill);
+    row.append(el("span", "name", t), track, el("span", "n", `${ok}/${qs.length}`));
+    topics.appendChild(row);
+  });
+  box.appendChild(topics);
+
+  const actions = el("div", "actions");
+  const toggle = el("label", "toggle");
+  const cb = document.createElement("input");
+  cb.type = "checkbox"; cb.id = "onlyWrong"; cb.checked = !!state.onlyWrong;
+  cb.addEventListener("change", () => {
+    state.onlyWrong = cb.checked; saveState();
+    $("quiz").classList.toggle("only-wrong", cb.checked);
+    updateEmpty();
+  });
+  toggle.append(cb, document.createTextNode("Show only questions I missed"));
+  const retake = el("button", null, "Retake quiz");
+  retake.addEventListener("click", retakeQuiz);
+  actions.append(toggle, retake);
+  box.appendChild(actions);
+}
+
+/* ---------- In-page confirmation (browser confirm() is blocked in some viewers) ---------- */
+let pendingAction = null;
+function askConfirm(message, yesLabel, action) {
+  pendingAction = action;
+  $("confirmText").textContent = message;
+  $("confirmYes").textContent = yesLabel;
+  $("confirmRow").hidden = false;
+  $("confirmYes").focus({ preventScroll: true });
+}
+function closeConfirm() {
+  pendingAction = null;
+  $("confirmRow").hidden = true;
+}
+
+/* ---------- Actions ---------- */
+function reveal() {
+  closeConfirm();
+  state.revealed = true;
+  saveState();
+  renderAll();
+  $("results").scrollIntoView({ behavior: motion(), block: "start" });
+}
+
+function retakeQuiz() {
+  askConfirm("Clear all your answers and start over? Questions and options will be shuffled.", "Start over", () => {
+    state = freshState();
+    state.order = shuffle(state.order);
+    saveState();
+    renderAll();
+    window.scrollTo({ top: 0, behavior: motion() });
+  });
+}
+
+function jumpTo(id) {
+  const q = byId[id];
+  if (!matchesFilter(q)) setFilter("all");
+  if (state.onlyWrong && isCorrect(q)) { state.onlyWrong = false; saveState(); renderResults(); $("quiz").classList.remove("only-wrong"); }
+  const card = $("card-" + id);
+  card.scrollIntoView({ behavior: motion(), block: "start" });
+  card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+  setTimeout(() => card.querySelector("input:not(:disabled), textarea:not([readonly]), .grade button")?.focus({ preventScroll: true }), 400);
+}
+
+function jumpToNext() {
+  const visible = state.order.filter(id => !isDone(byId[id]) && matchesFilter(byId[id]));
+  const any = state.order.filter(id => !isDone(byId[id]));
+  const id = visible[0] || any[0];
+  if (id) jumpTo(id);
+}
+
+function renderAll() { renderFilters(); renderResults(); renderQuiz(); updateProgress(); }
+
+$("revealBtn").addEventListener("click", () => state.revealed ? retakeQuiz() : reveal());
+$("jumpBtn").addEventListener("click", jumpToNext);
+$("forceBtn").addEventListener("click", () => {
+  const left = QUESTIONS.filter(q => !isDone(q)).length;
+  askConfirm(`You still have ${left} unanswered question${left === 1 ? "" : "s"}. Reveal all answers anyway?`, "Reveal all", reveal);
+});
+$("confirmYes").addEventListener("click", () => { const action = pendingAction; closeConfirm(); action?.(); });
+$("confirmNo").addEventListener("click", closeConfirm);
+
+renderAll();
+</script>
+</body>
+</html>

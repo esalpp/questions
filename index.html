@@ -3,12 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>.NET Knowledge Quiz</title>
-<meta http-equiv="refresh" content="0; url=dotnet-quiz.html">
-<link rel="canonical" href="dotnet-quiz.html">
-<script>location.replace("dotnet-quiz.html" + location.hash);</script>
+<title>Interview Practice Quizzes</title>
+<style>
+  :root { --bg: #f6f7fb; --surface: #fff; --text: #1b1f2a; --muted: #5b6475; --border: #e3e6ee; --accent: #512bd4; color-scheme: light; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1117; --surface: #171a22; --text: #e7e9ee; --muted: #9aa3b2; --border: #2a2f3b; --accent: #9b87f5; color-scheme: dark; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 48px 16px; }
+  h1 { margin: 0 0 6px; font-size: 1.8rem; }
+  p.lead { margin: 0 0 24px; color: var(--muted); }
+  a.quiz { display: block; padding: 18px 20px; margin: 0 0 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: inherit; text-decoration: none; }
+  a.quiz:hover, a.quiz:focus-visible { border-color: var(--accent); outline: none; }
+  a.quiz strong { display: block; font-size: 1.1rem; color: var(--accent); margin-bottom: 4px; }
+  a.quiz span { color: var(--muted); font-size: .95rem; }
+</style>
 </head>
 <body>
-<p>Opening the quiz… If nothing happens, <a href="dotnet-quiz.html">open the .NET Knowledge Quiz</a>.</p>
+<main>
+  <h1>Interview Practice Quizzes</h1>
+  <p class="lead">Pick a quiz. Each one saves your progress in this browser.</p>
+  <a class="quiz" href="windows-service-quiz.html">
+    <strong>Windows Service Interview Prep</strong>
+    <span>44 questions: Windows services, service-to-GUI communication (named pipes, WCF, sessions), GUI threading, general C#, and example answers to practice out loud.</span>
+  </a>
+  <a class="quiz" href="dotnet-quiz.html">
+    <strong>.NET Knowledge Quiz</strong>
+    <span>58 questions: C#, LINQ, async/await, threading and Mutex, the runtime, ASP.NET Core, EF Core and SQL, including write-the-code exercises.</span>
+  </a>
+</main>
 </body>
 </html>
