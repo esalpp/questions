@@ -4,6 +4,7 @@ Interview practice quizzes. Open https://esalpp.github.io/questions/ to choose o
 
 - `windows-service-quiz.html`: **Windows Service Interview Prep**, with 44 questions on Windows services, service-to-GUI communication (named pipes, WCF, sessions), GUI threading, general C#, plus example interview answers to practice out loud.
 - `dotnet-quiz.html`: **.NET Knowledge Quiz** (described below).
+- [`notes/`](notes/README.md): **study notes** covering Windows services and GUI communication, interview prep, async concepts, C# Q&A, collections and LINQ examples.
 
 ## .NET Knowledge Quiz
 
